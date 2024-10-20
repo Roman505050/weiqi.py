@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "weiqi"
+version = "0.1.0"
+description = "A simple Weiqi (Go) library for Python"
+authors = ["Roman505050 <myhun59@gmail.com>"]
+readme = "README.md"
+packages = [{include = "weiqi"}]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.10.0"
+mypy = "^1.12.0"
+
+
+[tool.poetry.group.example.dependencies]
+pygame = "^2.6.1"
+
+[tool.mypy]
+explicit_package_bases = true
+check_untyped_defs = true
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
