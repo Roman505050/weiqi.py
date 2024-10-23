@@ -1,18 +1,15 @@
-from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
 from itertools import product
-
 
 from weiqi.group import Group
 from weiqi.position import Position
 from weiqi.figure import Stone
-
-TState = TypeVar("TState")
-TFigure = TypeVar("TFigure")
+from weiqi.move import Move
 
 
-class BaseBoard(ABC, Generic[TState, TFigure]):
-    def __init__(self, size: int, figures: dict[Position, TFigure | None]):
+class Board:
+    """Class for the board of the Weiqi game."""
+
+    def __init__(self, size: int, figures: dict[Position, Stone | None]):
         self._size = size
         self._figures = figures
 
@@ -25,8 +22,11 @@ class BaseBoard(ABC, Generic[TState, TFigure]):
         if not self._validate_figures():
             raise ValueError("Invalid figures.")
 
+        for group in self._find_groups_without_liberties():
+            self.__remove_group(group)
+
     @property
-    def figures(self) -> dict[Position, TFigure | None]:
+    def figures(self) -> dict[Position, Stone | None]:
         return self._figures
 
     @property
@@ -44,35 +44,6 @@ class BaseBoard(ABC, Generic[TState, TFigure]):
 
     def position_in_bounds(self, position: Position) -> bool:
         return 0 <= position.x < self._size and 0 <= position.y < self._size
-
-    @abstractmethod
-    def _validate_available_size(self) -> bool: ...
-
-    @abstractmethod
-    def _validate_figures(self) -> bool: ...
-
-    @staticmethod
-    @abstractmethod
-    def generate_empty_board(size: int) -> "BaseBoard[TState, TFigure]": ...
-
-    @property
-    @abstractmethod
-    def state(self) -> TState: ...
-
-    @staticmethod
-    @abstractmethod
-    def from_state(state: TState) -> "BaseBoard[TState, TFigure]": ...
-
-    @abstractmethod
-    def place_figure(self, position: Position, figure: TFigure) -> None: ...
-
-
-class Board(BaseBoard[list[list[int]], Stone]):
-    def __init__(self, size: int, figures: dict[Position, Stone | None]):
-        super().__init__(size, figures)
-
-        for group in self._find_groups_without_liberties():
-            self.__remove_group(group)
 
     def _find_groups_without_liberties(self) -> list[Group]:
         return [
@@ -111,12 +82,12 @@ class Board(BaseBoard[list[list[int]], Stone]):
         ]
 
     def __remove_group(self, group: Group):
-        for position in group.stones:
+        for position in group.positions:
             self.figures[position] = None
 
     def _group_at_position(self, position: Position) -> Group:
-        color = self.figures.get(position, None)
-        if color is None:
+        figure = self.figures.get(position, None)
+        if figure is None:
             raise ValueError("Position is empty.")
 
         def bfs(queue: list[Position], visited: set[Position], group: Group):
@@ -126,8 +97,8 @@ class Board(BaseBoard[list[list[int]], Stone]):
                     continue
                 visited.add(pos)
 
-                if self.figures.get(pos) == color:
-                    group.stones.add(pos)
+                if self.figures.get(pos) == figure:
+                    group.positions.add(pos)
                     queue.extend(
                         neighbor
                         for neighbor in self._get_neighbors(pos)
@@ -137,7 +108,7 @@ class Board(BaseBoard[list[list[int]], Stone]):
                     group.liberties.add(pos)
             return group
 
-        group = Group(stones=set(), liberties=set())
+        group = Group(positions=set(), liberties=set(), figure=figure)
         return bfs([position], set(), group)
 
     @staticmethod
@@ -159,7 +130,7 @@ class Board(BaseBoard[list[list[int]], Stone]):
         return state
 
     @staticmethod
-    def from_state(state: list[list[int]]) -> "BaseBoard":
+    def from_state(state: list[list[int]]) -> "Board":
         stones = {
             Position(x, y): (
                 Stone.BLACK
@@ -171,30 +142,30 @@ class Board(BaseBoard[list[list[int]], Stone]):
         }
         return Board(len(state), stones)
 
-    def place_figure(self, position: Position, figure: Stone) -> None:
-        if not self.position_in_bounds(position):
+    def place_figure(self, move: Move) -> None:
+        if not self.position_in_bounds(move.position):
             raise ValueError("Position out of bounds.")
-        if self.figures.get(position) is not None:
+        if self.figures.get(move.position) is not None:
             raise ValueError("Intersection occupied by existing stone.")
 
-        self.figures[position] = figure
+        self.figures[move.position] = move.figure
 
         try:
             neighboring_enemy_groups = [
                 self._group_at_position(neighbor)
-                for neighbor in self._get_neighbors(position)
-                if self.figures.get(neighbor) not in {None, figure}
+                for neighbor in self._get_neighbors(move.position)
+                if self.figures.get(neighbor) not in {None, move.figure}
             ]
 
             for group in neighboring_enemy_groups:
                 if not group.liberties:
                     self.__remove_group(group)
 
-            new_group = self._group_at_position(position)
+            new_group = self._group_at_position(move.position)
         except ValueError as e:
-            self.figures[position] = None
+            self.figures[move.position] = None
             raise e
 
         if not new_group.liberties:
-            self.figures[position] = None
+            self.figures[move.position] = None
             raise ValueError("New group has zero liberties (suicide)")

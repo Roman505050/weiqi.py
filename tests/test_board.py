@@ -2,6 +2,7 @@ import unittest
 from weiqi.board import Board
 from weiqi.position import Position
 from weiqi.figure import Stone
+from weiqi.move import Move
 
 
 class TestBoard(unittest.TestCase):
@@ -25,8 +26,8 @@ class TestBoard(unittest.TestCase):
 
     def test_state_representation_is_correct(self):
         board = Board.generate_empty_board(5)
-        board.place_figure(Position(0, 0), Stone.BLACK)
-        board.place_figure(Position(0, 1), Stone.WHITE)
+        board.place_figure(Move(Position(0, 0), Stone.BLACK))
+        board.place_figure(Move(Position(0, 1), Stone.WHITE))
         expected_state = [
             [1, 0, -1, -1, -1],
             [-1, -1, -1, -1, -1],
@@ -43,19 +44,19 @@ class TestBoard(unittest.TestCase):
 
     def test_place_figure_places_correctly(self):
         board = Board.generate_empty_board(9)
-        board.place_figure(Position(0, 0), Stone.BLACK)
+        board.place_figure(Move(Position(0, 0), Stone.BLACK))
         self.assertEqual(board.figures[Position(0, 0)], Stone.BLACK)
 
     def test_place_figure_raises_on_occupied_position(self):
         board = Board.generate_empty_board(9)
-        board.place_figure(Position(0, 0), Stone.BLACK)
+        board.place_figure(Move(Position(0, 0), Stone.BLACK))
         with self.assertRaises(ValueError):
-            board.place_figure(Position(0, 0), Stone.WHITE)
+            board.place_figure(Move(Position(0, 0), Stone.WHITE))
 
     def test_place_figure_raises_on_out_of_bounds(self):
         board = Board.generate_empty_board(9)
         with self.assertRaises(ValueError):
-            board.place_figure(Position(9, 9), Stone.BLACK)
+            board.place_figure(Move(Position(9, 9), Stone.BLACK))
 
     def test_place_figure_removes_captured_group(self):
         state = [
@@ -88,10 +89,10 @@ class TestBoard(unittest.TestCase):
 
     def test_place_figure_allows_suicide_if_enabled(self):
         board = Board.generate_empty_board(9)
-        board.place_figure(Position(0, 0), Stone.BLACK)
-        board.place_figure(Position(0, 1), Stone.WHITE)
-        board.place_figure(Position(1, 0), Stone.WHITE)
-        board.place_figure(Position(1, 1), Stone.WHITE)
+        board.place_figure(Move(Position(0, 0), Stone.BLACK))
+        board.place_figure(Move(Position(0, 1), Stone.WHITE))
+        board.place_figure(Move(Position(1, 0), Stone.WHITE))
+        board.place_figure(Move(Position(1, 1), Stone.WHITE))
         self.assertIsNone(board.figures[Position(0, 0)])
 
 

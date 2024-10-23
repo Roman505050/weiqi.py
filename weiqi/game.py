@@ -1,30 +1,30 @@
 from typing import Generic
 
-from weiqi.board import BaseBoard
+from weiqi.board import Board
 from weiqi.figure import Stone
 from weiqi.player import Player, TUser
+from weiqi.bot import BaseBot
 from weiqi.position import Position
 
 
 class WeiqiGame(Generic[TUser]):
     def __init__(
         self,
-        board: BaseBoard,
-        players: list[Player[TUser]],
+        board: Board,
+        player_black: Player[TUser] | BaseBot,
+        player_white: Player[TUser] | BaseBot,
         turn: Stone | None = None,
     ):
         self._board = board
-        self._players = players
+        self._players = [player_black, player_white]
         self._turn = turn or Stone.BLACK
 
-        self._validate_players()
-
     @property
-    def board(self) -> BaseBoard:
+    def board(self) -> Board:
         return self._board
 
     @property
-    def players(self) -> list[Player[TUser]]:
+    def players(self) -> list[Player[TUser] | BaseBot]:
         return self._players
 
     @property
@@ -32,26 +32,46 @@ class WeiqiGame(Generic[TUser]):
         return self._turn
 
     def _validate_players(self):
-        if len(self._players) != 2:
-            raise ValueError("Game must have exactly 2 players")
-        if self._players[0].color == self._players[1].color:
-            raise ValueError("Players must have different colors")
+        if not all(
+            isinstance(player, (Player, BaseBot)) for player in self._players
+        ):
+            raise ValueError("Invalid player type.")
+        if all(isinstance(player, BaseBot) for player in self._players):
+            raise ValueError("At least one player must be human.")
+        if not all(
+            player.figure in (Stone.BLACK, Stone.WHITE)
+            for player in self._players
+        ):
+            raise ValueError("Invalid player color.")
+        if len(set(player.figure for player in self._players)) != 2:
+            raise ValueError("Players must have different colors.")
 
-    def _validate_current_player(self, player: Player[TUser]):
-        if player.color != self.turn:
-            raise ValueError("Not your turn")
-        if player not in self._players:
-            raise ValueError("Player not in game")
-
-    def get_current_player(self) -> Player[TUser]:
+    def get_current_player(self) -> Player[TUser] | BaseBot:
         return next(
-            player for player in self._players if player.color == self._turn
+            player for player in self._players if player.figure == self._turn
         )
 
-    def make_move(self, player: Player[TUser], x: int, y: int):
-        self._validate_current_player(player)
-        position = Position(x, y)
-        player.make_move(position, self._board)
+    @property
+    def score(self) -> dict[Stone, int]:
+        black_score = 0
+        white_score = 0
+        for figure in self._board.figures.values():
+            if figure is not None:
+                if figure == Stone.BLACK:
+                    black_score += 1
+                else:
+                    white_score += 1
+        return {Stone.BLACK: black_score, Stone.WHITE: white_score}
+
+    def make_move(self, x: int | None = None, y: int | None = None):
+        player = self.get_current_player()
+        if isinstance(player, Player):
+            if x is None or y is None:
+                raise ValueError("Position is required.")
+            position = Position(x, y)
+            player.make_move(self._board, position)
+        else:
+            player.make_move(self._board)  # Bot move
         self._next_turn()
 
     def _next_turn(self):

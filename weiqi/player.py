@@ -1,24 +1,26 @@
 from typing import Generic, TypeVar
 
-from weiqi.board import BaseBoard
+from weiqi.board import Board
 from weiqi.figure import Stone
 from weiqi.position import Position
+from weiqi.move import Move
 
 TUser = TypeVar("TUser")
 
 
 class Player(Generic[TUser]):
-    def __init__(self, user: TUser, color: Stone):
+    def __init__(self, user: TUser, figure: Stone):
         self._user = user
-        self._color = color
+        self._figure = figure
 
     @property
     def user(self) -> TUser:
         return self._user
 
     @property
-    def color(self) -> Stone:
-        return self._color
+    def figure(self) -> Stone:
+        return self._figure
 
-    def make_move(self, position: Position, board: BaseBoard):
-        board.place_figure(position, self.color)
+    def make_move(self, board: Board, position: Position):
+        move = Move(position, self.figure)
+        board.place_figure(move)
