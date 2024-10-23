@@ -1,11 +1,10 @@
-# Pygame usage example
 from dataclasses import dataclass
-
-from weiqi import WeiqiGame, Board, Player, Stone
-
+import random
 import pygame
 import sys
-
+from weiqi import WeiqiGame, Board, Player, Stone
+from weiqi.random_bot import RandomBot
+from weiqi.IBot import Bot
 
 class WeiqiGUI:
     WHITE = (255, 255, 255)
@@ -18,9 +17,7 @@ class WeiqiGUI:
         self.board_size = game.board.size
         self.cell_size = 40
         self.window_size = self.cell_size * (self.board_size + 1)
-        self.screen = pygame.display.set_mode(
-            (self.window_size, self.window_size)
-        )
+        self.screen = pygame.display.set_mode((self.window_size, self.window_size))
         pygame.display.set_caption("Weiqi")
 
     def _draw_board(self, board: list[list[int]]):
@@ -32,19 +29,9 @@ class WeiqiGUI:
                 center_x = x * self.cell_size + self.cell_size
                 center_y = y * self.cell_size + self.cell_size
                 if board[x][y] == 0:
-                    pygame.draw.circle(
-                        self.screen,
-                        self.WHITE,
-                        (center_x, center_y),
-                        15,
-                    )
+                    pygame.draw.circle(self.screen, self.WHITE, (center_x, center_y), 15)
                 elif board[x][y] == 1:
-                    pygame.draw.circle(
-                        self.screen,
-                        self.BLACK,
-                        (center_x, center_y),
-                        15,
-                    )
+                    pygame.draw.circle(self.screen, self.BLACK, (center_x, center_y), 15)
 
     def _draw_background(self):
         """Draw the board grid"""
@@ -118,6 +105,12 @@ class WeiqiGUI:
                     y = (y - self.cell_size // 2) // self.cell_size
 
                     self.place_stone(x, y)
+
+                    # After human move, let the bot make its move
+                    if isinstance(self.game.get_current_player(), RandomBot):
+                        self.game.get_current_player().make_random_move()
+                        self._draw_board(self.game.board.state)
+
             pygame.display.flip()
 
 
@@ -142,13 +135,21 @@ def main():
             break
         except ValueError:
             print("Invalid size")
+
     board_init = Board.generate_empty_board(board_size)
+
+    # Create one human player and one bot player
     players: list[Player[User]] = [
-        Player(User(1, "Alice"), Stone.BLACK),
-        Player(User(2, "Bob"), Stone.WHITE),
+        Player(User(1, "Alice"), Stone.BLACK),  # Human player
+        RandomBot(User(2, "Bob"), Stone.WHITE, None),  # Bot player
     ]
-    game_ist = WeiqiGame(board_init, players, Stone.BLACK)
-    gui = WeiqiGUI(game_ist)
+
+    game = WeiqiGame(board_init, players, Stone.BLACK)
+
+    # Pass the game to the bot
+    players[1].game = game
+
+    gui = WeiqiGUI(game)
     gui.main_loop()
 
 
