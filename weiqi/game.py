@@ -73,8 +73,7 @@ class WeiqiGame(Generic[TUser]):
         else:
             if x is not None or y is not None:
                 raise ValueError(
-                    "Position is not required. "
-                    "Because it's bot move."
+                    "Position is not required. " "Because it's bot move."
                 )
             player.make_move(self._board)  # Bot move
         self._next_turn()

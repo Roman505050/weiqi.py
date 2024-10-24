@@ -13,13 +13,13 @@ class TestBoard(unittest.TestCase):
 
     def test_from_state_creates_correct_board(self):
         state = [
-            [1, 0, -1, -1, -1],
-            [-1, -1, -1, -1, -1],
-            [-1, -1, -1, -1, -1],
-            [-1, -1, -1, -1, -1],
-            [-1, -1, -1, -1, -1],
+            [1, -1, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
         ]
-        board = Board.from_state(state)
+        board = Board(state)
         self.assertEqual(board.figures[Position(0, 0)], Stone.BLACK)
         self.assertEqual(board.figures[Position(0, 1)], Stone.WHITE)
         self.assertIsNone(board.figures[Position(1, 0)])
@@ -29,13 +29,13 @@ class TestBoard(unittest.TestCase):
         board.place_figure(Move(Position(0, 0), Stone.BLACK))
         board.place_figure(Move(Position(0, 1), Stone.WHITE))
         expected_state = [
-            [1, 0, -1, -1, -1],
-            [-1, -1, -1, -1, -1],
-            [-1, -1, -1, -1, -1],
-            [-1, -1, -1, -1, -1],
-            [-1, -1, -1, -1, -1],
+            [1, -1, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
         ]
-        self.assertEqual(board.state, expected_state)
+        self.assertEqual(board.state_as_matrix, expected_state)
 
     def test_position_in_bounds_checks_correctly(self):
         board = Board.generate_empty_board(9)
@@ -60,32 +60,32 @@ class TestBoard(unittest.TestCase):
 
     def test_place_figure_removes_captured_group(self):
         state = [
-            [0, 1, -1, -1, -1],
-            [1, 1, -1, -1, -1],
-            [-1, -1, -1, -1, -1],
-            [-1, -1, -1, -1, -1],
-            [-1, -1, -1, -1, -1],
+            [-1, 1, 0, 0, 0],
+            [1, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
         ]
-        board = Board.from_state(state)
+        board = Board(state)
         self.assertIsNone(board.figures[Position(0, 0)])
 
     def test_place_figure_removes_double_captured_group(self):
         state = [
-            [0, 1, 0, 1, 0],
-            [0, 1, 0, 1, 0],
-            [0, 1, 1, 1, 0],
-            [0, 0, 0, 0, 0],
+            [-1, 1, -1, 1, -1],
+            [-1, 1, -1, 1, -1],
+            [-1, 1, 1, 1, -1],
             [-1, -1, -1, -1, -1],
+            [0, 0, 0, 0, 0],
         ]
-        board = Board.from_state(state)
+        board = Board(state)
         expected_state = [
-            [0, -1, -1, -1, 0],
-            [0, -1, -1, -1, 0],
-            [0, -1, -1, -1, 0],
-            [0, 0, 0, 0, 0],
+            [-1, 0, 0, 0, -1],
+            [-1, 0, 0, 0, -1],
+            [-1, 0, 0, 0, -1],
             [-1, -1, -1, -1, -1],
+            [0, 0, 0, 0, 0],
         ]
-        self.assertEqual(board.state, expected_state)
+        self.assertEqual(board.state_as_matrix, expected_state)
 
     def test_place_figure_allows_suicide_if_enabled(self):
         board = Board.generate_empty_board(9)
@@ -94,6 +94,64 @@ class TestBoard(unittest.TestCase):
         board.place_figure(Move(Position(1, 0), Stone.WHITE))
         board.place_figure(Move(Position(1, 1), Stone.WHITE))
         self.assertIsNone(board.figures[Position(0, 0)])
+
+    def test_not_square_board(self):
+        figures = {
+            Position(0, 0): None,
+            Position(1, 0): None,
+            Position(0, 1): None,
+            Position(1, 1): None,
+            Position(0, 2): None,
+            Position(1, 2): None,
+            Position(0, 3): None,
+            Position(1, 3): None,
+            Position(0, 4): None,
+            Position(1, 4): None,
+            Position(2, 0): None,
+            Position(3, 0): None,
+            Position(2, 1): None,
+            Position(3, 1): None,
+            Position(2, 2): None,
+            Position(3, 2): None,
+            Position(2, 3): None,
+            Position(3, 3): None,
+            Position(2, 4): None,
+            Position(3, 4): None,
+            Position(4, 0): None,
+            Position(4, 1): None,
+            Position(4, 2): None,
+            Position(4, 3): None,
+            Position(4, 4): None,
+        }
+        board = Board(figures)
+        self.assertEqual(board.size, 5)
+
+        figures[Position(5, 5)] = None
+
+        with self.assertRaises(ValueError):
+            Board(figures)
+
+        state_as_matrix = [
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+        ]
+        board = Board(state_as_matrix)
+        self.assertEqual(board.size, 5)
+
+        state_as_matrix.append([0, 0, 0, 0, 0])
+        with self.assertRaises(ValueError):
+            Board(state_as_matrix)
+
+        state_as_string = "...../...../...../...../....."
+        board = Board(state_as_string)
+        self.assertEqual(board.size, 5)
+
+        state_as_string += "."
+        with self.assertRaises(ValueError):
+            Board(state_as_string)
 
 
 if __name__ == "__main__":

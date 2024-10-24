@@ -28,7 +28,7 @@ class WeiqiGUI:
 
     def draw(self):
         self._draw_background()
-        self._draw_board(self.game.board.state)
+        self._draw_board(self.game.board.state_as_matrix)
         self._draw_score(self.game.score)
         self._draw_turn(self.game.turn)
         pygame.display.flip()
@@ -49,7 +49,7 @@ class WeiqiGUI:
             for y in range(self.board_size):
                 center_x = x * self.cell_size + self.cell_size
                 center_y = y * self.cell_size + self.cell_size
-                if board[x][y] == 0:
+                if board[x][y] == -1:
                     pygame.draw.circle(
                         self.screen,
                         self.WHITE,
