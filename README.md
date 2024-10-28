@@ -29,7 +29,8 @@ player_white = Player(User("White"), Stone.WHITE)
 board = Board.generate_empty_board(19)
 
 game: WeiqiGame[User] = WeiqiGame(
-    players=[player_black, player_white],
+    player_black=player_black,
+    player_white=player_white,
     board=board
 )
 
