@@ -96,7 +96,7 @@ class TestBoard(unittest.TestCase):
         self.assertIsNone(board.figures[Position(0, 0)])
 
     def test_not_square_board(self):
-        figures = {
+        figures: dict[Position, Stone | None] = {
             Position(0, 0): None,
             Position(1, 0): None,
             Position(0, 1): None,

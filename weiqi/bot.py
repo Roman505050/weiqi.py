@@ -36,5 +36,4 @@ class RandomBot(BaseBot):
                         continue
                     else:
                         raise ValueError("RandomBot can't find a valid move")
-                    continue
                 break
