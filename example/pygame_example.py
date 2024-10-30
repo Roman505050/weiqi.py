@@ -1,11 +1,11 @@
 # Pygame usage example
-import time
-
-from weiqi import WeiqiGame, Board, Player, Stone
-
+from queue import Queue
+import threading
 import pygame
+import time
 import sys
 
+from weiqi import WeiqiGame, Board, Player, Stone
 from weiqi.bot import BaseBot, RandomBot
 
 
@@ -17,6 +17,7 @@ class WeiqiGUI:
 
     def __init__(self, game: WeiqiGame):
         pygame.font.init()
+        pygame.display.set_caption("Weiqi")
         self.game = game
         self.board_size = game.board.size
         self.cell_size = 40
@@ -24,7 +25,8 @@ class WeiqiGUI:
         self.screen = pygame.display.set_mode(
             (self.window_size, self.window_size + 60)
         )
-        pygame.display.set_caption("Weiqi")
+        self.queue = Queue()
+        self.lock = threading.Lock()
 
     def draw(self):
         self._draw_background()
@@ -139,18 +141,25 @@ class WeiqiGUI:
         """Place a stone on the board"""
         try:
             self.game.make_move(x, y)
-            self.draw()
+            self.queue.put("update")
 
             if isinstance(self.game.get_current_player(), BaseBot):
                 time.sleep(1)
                 self.game.make_move()
-                self.draw()
+                self.queue.put("update")
         except ValueError as e:
             print(f"Invalid move: {e}")
+        finally:
+            self.lock.release()
 
     def main_loop(self):
         self.draw()
         while True:
+            while not self.queue.empty():
+                msg = self.queue.get()
+                if msg == "update":
+                    self.draw()
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
@@ -159,7 +168,12 @@ class WeiqiGUI:
                     x = (x - self.cell_size // 2) // self.cell_size
                     y = (y - self.cell_size // 2) // self.cell_size
 
-                    self.place_stone(x, y)
+                    if self.lock.acquire(blocking=False):
+                        threading.Thread(
+                            target=self.place_stone, args=(x, y)
+                        ).start()
+
+            time.sleep(0.02)
 
 
 def main():
