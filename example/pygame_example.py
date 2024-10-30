@@ -25,7 +25,7 @@ class WeiqiGUI:
         self.screen = pygame.display.set_mode(
             (self.window_size, self.window_size + 60)
         )
-        self.queue = Queue()
+        self.queue: Queue[str] = Queue()
         self.lock = threading.Lock()
 
     def draw(self):
