@@ -183,7 +183,7 @@ def main():
             board_size = int(
                 input(
                     "Enter the board size "
-                    f"({", ".join(map(str, available_sizes))}): "
+                    f"({', '.join(map(str, available_sizes))}): "
                 )
             )
             if board_size not in available_sizes:
