@@ -18,6 +18,11 @@ class BaseBot(ABC):
     @abstractmethod
     def make_move(self, board: Board): ...
 
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, BaseBot):
+            return NotImplemented
+        return self.figure == other.figure and type(self) is type(other)
+
 
 class RandomBot(BaseBot):
     def make_move(self, board: Board):
