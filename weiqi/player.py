@@ -24,3 +24,8 @@ class Player(Generic[TUser]):
     def make_move(self, board: Board, position: Position):
         move = Move(position, self.figure)
         board.place_figure(move)
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, Player):
+            return NotImplemented
+        return self.user == other.user and self.figure == other.figure
