@@ -19,6 +19,8 @@ class WeiqiGame(Generic[TUser]):
         self._players = [player_black, player_white]
         self._turn = turn or Stone.BLACK
 
+        self._validate_players()
+
     @property
     def board(self) -> Board:
         return self._board
@@ -63,8 +65,17 @@ class WeiqiGame(Generic[TUser]):
                     white_score += 1
         return {Stone.BLACK: black_score, Stone.WHITE: white_score}
 
-    def make_move(self, x: int | None = None, y: int | None = None):
-        player = self.get_current_player()
+    def make_move(
+        self,
+        player: Player[TUser] | BaseBot,
+        x: int | None = None,
+        y: int | None = None,
+    ):
+        current_player = self.get_current_player()
+
+        if player != current_player:
+            raise ValueError("It's not your turn.")
+
         if isinstance(player, Player):
             if x is None or y is None:
                 raise ValueError("Position is required.")

@@ -15,9 +15,11 @@ class WeiqiGUI:
     BOARD_COLOR = (222, 184, 135)
     LINE_COLOR = BLACK
 
-    def __init__(self, game: WeiqiGame):
+    def __init__(self, game: WeiqiGame, player: Player, bot: BaseBot):
         pygame.font.init()
         self.game = game
+        self.player = player
+        self.bot = bot
         self.board_size = game.board.size
         self.cell_size = 40
         self.window_size = self.cell_size * (self.board_size + 1)
@@ -135,17 +137,26 @@ class WeiqiGUI:
                 5,
             )
 
-    def place_stone(self, x: int, y: int):
+    def place_stone(self, x: int, y: int) -> None:
         """Place a stone on the board"""
         try:
-            self.game.make_move(x, y)
+            self.game.make_move(self.player, x, y)
             self.draw()
 
+            self.bot_move()
+        except ValueError as e:
+            print(f"Invalid move: {e}")
+
+    def bot_move(self) -> None:
+        try:
             if isinstance(self.game.get_current_player(), BaseBot):
                 time.sleep(1)
-                self.game.make_move()
+                self.game.make_move(self.bot)
                 self.draw()
         except ValueError as e:
+            if "can't find a valid move" in str(e):
+                print("Bot can't find a valid move. Game over.")
+                sys.exit()
             print(f"Invalid move: {e}")
 
     def main_loop(self):
@@ -181,7 +192,7 @@ def main():
     player = Player("Human", Stone.BLACK)
     bot = RandomBot(Stone.WHITE)
     game_ist = WeiqiGame(board_init, player, bot, turn=Stone.BLACK)
-    gui = WeiqiGUI(game_ist)
+    gui = WeiqiGUI(game=game_ist, player=player, bot=bot)
     gui.main_loop()
 
 
