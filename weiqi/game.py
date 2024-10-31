@@ -51,18 +51,6 @@ class WeiqiGame(Generic[TUser]):
             player for player in self._players if player.figure == self._turn
         )
 
-    @property
-    def score(self) -> dict[Stone, int]:
-        black_score = 0
-        white_score = 0
-        for figure in self._board.figures.values():
-            if figure is not None:
-                if figure == Stone.BLACK:
-                    black_score += 1
-                else:
-                    white_score += 1
-        return {Stone.BLACK: black_score, Stone.WHITE: white_score}
-
     def make_move(self, x: int | None = None, y: int | None = None):
         player = self.get_current_player()
         if isinstance(player, Player):
