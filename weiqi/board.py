@@ -143,7 +143,7 @@ class Board:
         """
         state = [[0] * self.size for _ in range(self.size)]
         for position, stone in self._figures.items():
-            state[position.x][position.y] = (
+            state[position.y][position.x] = (
                 1
                 if stone == Stone.BLACK
                 else -1 if stone == Stone.WHITE else 0
@@ -179,8 +179,8 @@ class Board:
                 if cell == 1
                 else Stone.WHITE if cell == -1 else None
             )
-            for x, row in enumerate(matrix)
-            for y, cell in enumerate(row)
+            for y, row in enumerate(matrix)
+            for x, cell in enumerate(row)
         }
 
     @staticmethod

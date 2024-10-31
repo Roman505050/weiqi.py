@@ -13,8 +13,8 @@ class TestBoard(unittest.TestCase):
 
     def test_from_state_creates_correct_board(self):
         state = [
-            [1, -1, 0, 0, 0],
-            [0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0],
+            [-1, 0, 0, 0, 0],
             [0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0],
@@ -29,8 +29,8 @@ class TestBoard(unittest.TestCase):
         board.place_figure(Move(Position(0, 0), Stone.BLACK))
         board.place_figure(Move(Position(0, 1), Stone.WHITE))
         expected_state = [
-            [1, -1, 0, 0, 0],
-            [0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0],
+            [-1, 0, 0, 0, 0],
             [0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0],
