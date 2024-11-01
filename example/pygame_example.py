@@ -50,14 +50,14 @@ class WeiqiGUI:
             for y in range(self.board_size):
                 center_x = x * self.cell_size + self.cell_size
                 center_y = y * self.cell_size + self.cell_size
-                if board[x][y] == -1:
+                if board[y][x] == -1:
                     pygame.draw.circle(
                         self.screen,
                         self.WHITE,
                         (center_x, center_y),
                         15,
                     )
-                elif board[x][y] == 1:
+                elif board[y][x] == 1:
                     pygame.draw.circle(
                         self.screen,
                         self.BLACK,
