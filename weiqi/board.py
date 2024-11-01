@@ -176,6 +176,27 @@ class Board:
             None: neutral_territory,
         }
 
+    @property
+    def score(self) -> dict[Stone, int]:
+        territories = self.find_territories()
+        black_score = len(territories[Stone.BLACK])
+        white_score = len(territories[Stone.WHITE])
+
+        max_figures = self.size**2
+        expected_score = max_figures - 1
+
+        # If one figure in board, score for white and black is 0,0 respectively
+        if expected_score == black_score or expected_score == white_score:
+            return {
+                Stone.BLACK: 0,
+                Stone.WHITE: 0,
+            }
+
+        return {
+            Stone.BLACK: black_score,
+            Stone.WHITE: white_score,
+        }
+
     @staticmethod
     def generate_empty_board(size: int) -> "Board":
         figures: dict[Position, Stone | None] = {

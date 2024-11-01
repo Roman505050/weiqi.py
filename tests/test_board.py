@@ -1,5 +1,5 @@
 import unittest
-from parameterized import parameterized # type: ignore[import-untyped]
+from parameterized import parameterized  # type: ignore[import-untyped]
 
 from weiqi.board import Board
 from weiqi.position import Position
@@ -223,6 +223,42 @@ class TestBoard(unittest.TestCase):
         territories = board.find_territories()
 
         self.assertEqual(territories, expected_territories)
+
+    @parameterized.expand(
+        [
+            (
+                [
+                    [0, 1, 0, -1, 0],
+                    [0, 1, 0, -1, 0],
+                    [0, 1, 0, -1, 0],
+                    [0, 1, 1, -1, 0],
+                    [0, 0, 1, -1, 0],
+                ],
+                {Stone.BLACK: 6, Stone.WHITE: 5},
+            ),
+            (
+                ".W.../W.WWW/BWBBB/.B.../.....",
+                {Stone.BLACK: 9, Stone.WHITE: 5},
+            ),
+            (
+                "...../...../...../...../.....",
+                {Stone.BLACK: 0, Stone.WHITE: 0},
+            ),
+            (
+                "...../...../...../..B../.....",
+                {Stone.BLACK: 0, Stone.WHITE: 0},
+            ),
+            (
+                ".W.../...../...../...../.....",
+                {Stone.BLACK: 0, Stone.WHITE: 0},
+            ),
+        ]
+    )
+    def test_score(
+        self, state: list[list[int]] | str, expected_score: dict[Stone, int]
+    ):
+        board = Board(state)
+        self.assertEqual(board.score, expected_score)
 
 
 if __name__ == "__main__":
