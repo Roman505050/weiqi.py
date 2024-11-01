@@ -1,4 +1,6 @@
 import unittest
+from parameterized import parameterized # type: ignore[import-untyped]
+
 from weiqi.board import Board
 from weiqi.position import Position
 from weiqi.figure import Stone
@@ -152,6 +154,75 @@ class TestBoard(unittest.TestCase):
         state_as_string += "."
         with self.assertRaises(ValueError):
             Board(state_as_string)
+
+    @parameterized.expand(
+        [
+            (
+                [
+                    [0, 1, 0, -1, 0],
+                    [0, 1, 0, -1, 0],
+                    [0, 1, 0, -1, 0],
+                    [0, 1, 1, -1, 0],
+                    [0, 0, 1, -1, 0],
+                ],
+                {
+                    Stone.BLACK: {
+                        Position(0, 0),
+                        Position(0, 1),
+                        Position(0, 2),
+                        Position(0, 3),
+                        Position(0, 4),
+                        Position(1, 4),
+                    },
+                    Stone.WHITE: {
+                        Position(4, 0),
+                        Position(4, 1),
+                        Position(4, 2),
+                        Position(4, 3),
+                        Position(4, 4),
+                    },
+                    None: {
+                        Position(2, 0),
+                        Position(2, 1),
+                        Position(2, 2),
+                    },
+                },
+            ),
+            (
+                ".W.../W.WWW/BWBBB/.B.../.....",
+                {
+                    Stone.BLACK: {
+                        Position(0, 3),
+                        Position(0, 4),
+                        Position(1, 4),
+                        Position(2, 4),
+                        Position(3, 4),
+                        Position(4, 4),
+                        Position(2, 3),
+                        Position(3, 3),
+                        Position(4, 3),
+                    },
+                    Stone.WHITE: {
+                        Position(0, 0),
+                        Position(1, 1),
+                        Position(4, 0),
+                        Position(3, 0),
+                        Position(2, 0),
+                    },
+                    None: set(),
+                },
+            ),
+        ]
+    )
+    def test_correctly_find_territories(
+        self,
+        state: list[list[int]] | str,
+        expected_territories: dict[Stone | None, set[Position]],
+    ):
+        board = Board(state)
+        territories = board.find_territories()
+
+        self.assertEqual(territories, expected_territories)
 
 
 if __name__ == "__main__":
