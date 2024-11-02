@@ -266,9 +266,9 @@ class Board:
         return "/".join(
             "".join(
                 symbols.get(self._figures.get(Position(x, y)), ".")
-                for y in range(self.size)
+                for x in range(self.size)
             )
-            for x in range(self.size)
+            for y in range(self.size)
         )
 
     @staticmethod

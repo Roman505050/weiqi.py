@@ -260,6 +260,30 @@ class TestBoard(unittest.TestCase):
         board = Board(state)
         self.assertEqual(board.score, expected_score)
 
+    @parameterized.expand(
+        [
+            (
+                "...../..W../...../...../.....",
+                "...../..W../...../...../.....",
+            ),
+            (
+                ".W.../WBW../.W.../..BB./.BWWB",
+                ".W.../W.W../.W.../..BB./.B..B",
+            ),
+            (
+                "...../...../...../...../.....",
+                "...../...../...../...../.....",
+            ),
+            (
+                ".W.../...../...../...../.....",
+                ".W.../...../...../...../.....",
+            ),
+        ]
+    )
+    def test_string_state(self, state: str, expected_state: str):
+        board = Board(state)
+        self.assertEqual(board.state_as_string, expected_state)
+
 
 if __name__ == "__main__":
     unittest.main()
