@@ -64,7 +64,7 @@ After running the command, you should see a window pop up with a Go board. You c
 ### TODO
 
 - [ ] Implement the time control system
-- [ ] Implement the count of captured stones
+- [x] Implement the count of captured stones
 - [ ] Implement the end-game detection
 - [x] Implement the simple scoring system
 - [ ] Implement the complex scoring system
