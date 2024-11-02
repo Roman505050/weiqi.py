@@ -1,4 +1,5 @@
 from itertools import product
+from pickle import PROTO
 
 from weiqi.group import Group
 from weiqi.position import Position
@@ -84,12 +85,12 @@ class Board:
     def position_in_bounds(self, position: Position) -> bool:
         return 0 <= position.x < self._size and 0 <= position.y < self._size
 
-    def _find_groups_without_liberties(self) -> list[Group]:
-        return [
+    def _find_groups_without_liberties(self) -> set[Group]:
+        return {
             self._group_at_position(position)
             for position in self._get_not_empty_positions()
             if not self._group_at_position(position).liberties
-        ]
+        }
 
     def _get_not_empty_positions(self) -> list[Position]:
         return [

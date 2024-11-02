@@ -284,6 +284,35 @@ class TestBoard(unittest.TestCase):
         board = Board(state)
         self.assertEqual(board.state_as_string, expected_state)
 
+    @parameterized.expand(
+        [
+            (
+                "...../...../...../...../.....",
+                0,
+                0,
+            ),
+            (
+                ".W.../WBW../.W.../..BB./.BWWB",
+                2,
+                1,
+            ),
+            (".W.../WBW../.WWW./.WBBW/WBWWB", 2, 5),
+        ]
+    )
+    def test_initialization_counts_captured_stones_correctly(
+        self,
+        state: list[list[int]] | str,
+        expected_white_captured: int,
+        expected_black_captured: int,
+    ):
+        """
+        If the territories are not seized during the initialization,
+        they must be systematically seized
+        """
+        board = Board(state)
+        self.assertEqual(board.white_captured, expected_white_captured)
+        self.assertEqual(board.black_captured, expected_black_captured)
+
 
 if __name__ == "__main__":
     unittest.main()
