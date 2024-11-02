@@ -12,6 +12,8 @@ class Board:
     def __init__(
         self,
         figures: dict[Position, Stone | None] | str | list[list[int]],
+        white_captured: int = 0,
+        black_captured: int = 0,
     ):
         if isinstance(figures, str):
             self._figures = self._from_string(figures)
@@ -21,6 +23,8 @@ class Board:
             self._figures = figures
 
         self._size = int(len(self._figures) ** 0.5)
+        self._white_captured = white_captured
+        self._black_captured = black_captured
 
         if not self._validate_available_size():
             raise ValueError("Not available size.")
@@ -41,6 +45,20 @@ class Board:
     @property
     def size(self) -> int:
         return self._size
+
+    @property
+    def white_captured(self) -> int:
+        """
+        Number of white stones captured by black player (stones).
+        """
+        return self._white_captured
+
+    @property
+    def black_captured(self) -> int:
+        """
+        Number of black stones captured by white player (stones).
+        """
+        return self._black_captured
 
     def _is_square_board(self) -> bool:
         unique_x = len(set(position.x for position in self._figures.keys()))
@@ -93,6 +111,13 @@ class Board:
         ]
 
     def __remove_group(self, group: Group):
+        count = len(group.positions)
+
+        if group.figure == Stone.BLACK:
+            self._black_captured += count
+        elif group.figure == Stone.WHITE:
+            self._white_captured += count
+
         for position in group.positions:
             self._figures[position] = None
 
@@ -275,6 +300,9 @@ class Board:
             raise ValueError("Position out of bounds.")
         if self._figures.get(move.position) is not None:
             raise ValueError("Intersection occupied by existing stone.")
+        white_captured = self.white_captured
+        black_captured = self.black_captured
+        figures = self._figures.copy()
 
         self._figures[move.position] = move.figure
 
@@ -291,9 +319,13 @@ class Board:
 
             new_group = self._group_at_position(move.position)
         except ValueError as e:
-            self._figures[move.position] = None
+            self._figures = figures
+            self._white_captured = white_captured
+            self._black_captured = black_captured
             raise e
 
         if not new_group.liberties:
-            self._figures[move.position] = None
+            self._figures = figures
+            self._white_captured = white_captured
+            self._black_captured = black_captured
             raise ValueError("New group has zero liberties (suicide)")
