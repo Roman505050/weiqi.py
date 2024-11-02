@@ -122,6 +122,81 @@ class Board:
         group = Group(positions=set(), liberties=set(), figure=figure)
         return bfs([position], set(), group)
 
+    def find_territories(self) -> dict[Stone | None, set[Position]]:
+        visited: set[Position] = set()
+        white_territory: set[Position] = set()
+        black_territory: set[Position] = set()
+        neutral_territory: set[Position] = set()
+
+        def dfs(
+            position: Position,
+            visited: set[Position],
+            territory: set[Position],
+            colors: set[Stone],
+        ):
+            stack = [position]
+            while stack:
+                current_position = stack.pop()
+                if current_position in visited:
+                    continue
+                visited.add(current_position)
+                territory.add(current_position)
+
+                for neighbor in self._get_neighbors(current_position):
+                    if neighbor in visited:
+                        continue
+
+                    neighbor_stone = self._figures.get(neighbor)
+                    if neighbor_stone is None:
+                        stack.append(neighbor)
+                    else:
+                        colors.add(neighbor_stone)
+
+        for i in range(self.size):
+            for j in range(self.size):
+                position = Position(i, j)
+                if (
+                    self._figures[position] is None
+                    and position not in neutral_territory
+                ):
+                    colors: set[Stone] = set()
+                    territory: set[Position] = set()
+                    dfs(position, visited, territory, colors)
+
+                    if Stone.BLACK in colors and Stone.WHITE not in colors:
+                        black_territory.update(territory)
+                    elif Stone.WHITE in colors and Stone.BLACK not in colors:
+                        white_territory.update(territory)
+                    else:
+                        neutral_territory.update(territory)
+
+        return {
+            Stone.BLACK: black_territory,
+            Stone.WHITE: white_territory,
+            None: neutral_territory,
+        }
+
+    @property
+    def score(self) -> dict[Stone, int]:
+        territories = self.find_territories()
+        black_score = len(territories[Stone.BLACK])
+        white_score = len(territories[Stone.WHITE])
+
+        max_figures = self.size**2
+        expected_score = max_figures - 1
+
+        # If one figure in board, score for white and black is 0,0 respectively
+        if expected_score == black_score or expected_score == white_score:
+            return {
+                Stone.BLACK: 0,
+                Stone.WHITE: 0,
+            }
+
+        return {
+            Stone.BLACK: black_score,
+            Stone.WHITE: white_score,
+        }
+
     @staticmethod
     def generate_empty_board(size: int) -> "Board":
         figures: dict[Position, Stone | None] = {

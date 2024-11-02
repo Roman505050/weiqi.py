@@ -31,7 +31,7 @@ class WeiqiGUI:
     def draw(self):
         self._draw_background()
         self._draw_board(self.game.board.state_as_matrix)
-        self._draw_score(self.game.score)
+        self._draw_score(self.game.board.score)
         self._draw_turn(self.game.turn)
         pygame.display.flip()
 

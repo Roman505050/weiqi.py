@@ -44,4 +44,4 @@ jobs:
       - name: Test with unittest
         run: |
           # Run tests with Python's unittest module
-          python -m unittest discover tests
+          poetry run python -m unittest discover tests
