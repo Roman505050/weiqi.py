@@ -1,12 +1,16 @@
 # Pygame usage example
 import time
 
-from weiqi import WeiqiGame, Board, Player, Stone
+from weiqi.game import WeiqiGame
+from weiqi.board import Board
+from weiqi.figure import Stone
+from weiqi.player import Player
 
 import pygame
+
 import sys
 
-from weiqi.bot import BaseBot, RandomBot
+from weiqi.bot import BaseBot, SmartBot
 
 
 class WeiqiGUI:
@@ -190,7 +194,8 @@ def main():
             print("Invalid size")
     board_init = Board.generate_empty_board(board_size)
     player = Player("Human", Stone.BLACK)
-    bot = RandomBot(Stone.WHITE)
+    # bot = RandomBot(Stone.WHITE)
+    bot = SmartBot(Stone.WHITE)
     game_ist = WeiqiGame(board_init, player, bot, turn=Stone.BLACK)
     gui = WeiqiGUI(game=game_ist, player=player, bot=bot)
     gui.main_loop()
