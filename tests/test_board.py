@@ -296,7 +296,11 @@ class TestBoard(unittest.TestCase):
                 2,
                 1,
             ),
-            (".W.../WBW../.WWW./.WBBW/WBWWB", 2, 5),
+            (
+                ".W.../WBW../.WWW./.WBBW/WBWWB",
+                2,
+                5,
+            ),
         ]
     )
     def test_initialization_counts_captured_stones_correctly(
@@ -312,6 +316,18 @@ class TestBoard(unittest.TestCase):
         board = Board(state)
         self.assertEqual(board.white_captured, expected_white_captured)
         self.assertEqual(board.black_captured, expected_black_captured)
+
+    def test_white_captured(self):
+        board = Board("W..../B.W../..B../.B.../.....")
+        self.assertEqual(board.white_captured, 0)
+        board.place_figure(Move(Position(1, 0), Stone.BLACK))
+        self.assertEqual(board.white_captured, 1)
+
+    def test_black_captured(self):
+        board = Board("B..../W.B../..W../.B.../.....")
+        self.assertEqual(board.white_captured, 0)
+        board.place_figure(Move(Position(1, 0), Stone.WHITE))
+        self.assertEqual(board.black_captured, 1)
 
 
 if __name__ == "__main__":
