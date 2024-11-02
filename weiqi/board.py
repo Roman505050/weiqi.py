@@ -1,5 +1,4 @@
 from itertools import product
-from pickle import PROTO
 
 from weiqi.group import Group
 from weiqi.position import Position
