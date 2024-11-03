@@ -1,10 +1,14 @@
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 import random
 
-from weiqi.board import Board
 from weiqi.figure import Stone
 from weiqi.position import Position
 from weiqi.move import Move
+
+if TYPE_CHECKING:
+    from weiqi.game import WeiqiGame
+    from weiqi.player import TUser
 
 
 class BaseBot(ABC):
@@ -16,7 +20,7 @@ class BaseBot(ABC):
         return self._figure
 
     @abstractmethod
-    def make_move(self, board: Board) -> Move: ...
+    def make_move(self, game: "WeiqiGame[TUser]") -> Move: ...
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, BaseBot):
@@ -25,7 +29,9 @@ class BaseBot(ABC):
 
 
 class RandomBot(BaseBot):
-    def make_move(self, board: Board) -> Move:
+    def make_move(self, game: "WeiqiGame[TUser]") -> Move:
+        board = game.board
+
         count = 0
         while True:
             x_rand = random.randint(0, board.size - 1)
@@ -34,7 +40,7 @@ class RandomBot(BaseBot):
             move = Move(position=position, figure=self.figure)
             if board.figures[position] is None:
                 try:
-                    board.place_figure(move)
+                    game.make_move(self, move)
                 except ValueError:
                     count += 1
                     if count < 15:

@@ -1,12 +1,12 @@
 from typing import Generic
+import copy
 
 from weiqi.exceptions import GameOverException
 from weiqi.board import Board
 from weiqi.figure import Stone
-from weiqi.move import MoveHistory
+from weiqi.move import MoveHistory, Move
 from weiqi.player import Player, TUser
 from weiqi.bot import BaseBot
-from weiqi.position import Position
 
 
 class WeiqiGame(Generic[TUser]):
@@ -32,7 +32,8 @@ class WeiqiGame(Generic[TUser]):
 
     @property
     def board(self) -> Board:
-        return self._board
+        """Returns a copy of the board."""
+        return copy.deepcopy(self._board)
 
     @property
     def game_over(self) -> bool:
@@ -89,8 +90,7 @@ class WeiqiGame(Generic[TUser]):
     def make_move(
         self,
         player: Player[TUser] | BaseBot,
-        x: int | None = None,
-        y: int | None = None,
+        move: Move,
     ):
         if self._game_over:
             raise GameOverException("Game is already over.")
@@ -99,18 +99,10 @@ class WeiqiGame(Generic[TUser]):
 
         if player != current_player:
             raise ValueError("It's not your turn.")
+        if move.figure != player.figure:
+            raise ValueError("You can't place a figure of another color.")
 
-        if isinstance(player, Player):
-            if x is None or y is None:
-                raise ValueError("Position is required.")
-            position = Position(x, y)
-            move = player.make_move(self._board, position)
-        else:
-            if x is not None or y is not None:
-                raise ValueError(
-                    "Position is not required. Because it's bot move."
-                )
-            move = player.make_move(self._board)  # Bot move
+        self._board.place_figure(move)
         self._move_history.add_move(move)
         self._next_turn()
 

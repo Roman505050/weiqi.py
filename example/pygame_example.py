@@ -1,12 +1,9 @@
 # Pygame usage example
-import time
-
-from weiqi import WeiqiGame, Board, Player, Stone
-
 import pygame
+import time
 import sys
 
-from weiqi.bot import BaseBot, RandomBot
+from weiqi import WeiqiGame, Board, Player, Stone, Position, BaseBot, RandomBot
 
 
 class WeiqiGUI:
@@ -140,7 +137,7 @@ class WeiqiGUI:
     def place_stone(self, x: int, y: int) -> None:
         """Place a stone on the board"""
         try:
-            self.game.make_move(self.player, x, y)
+            self.player.make_move(self.game, Position(x, y))
             self.draw()
 
             self.bot_move()
@@ -149,9 +146,10 @@ class WeiqiGUI:
 
     def bot_move(self) -> None:
         try:
-            if isinstance(self.game.get_current_player(), BaseBot):
+            player = self.game.get_current_player()
+            if isinstance(player, BaseBot):
                 time.sleep(1)
-                self.game.make_move(self.bot)
+                player.make_move(self.game)
                 self.draw()
         except ValueError as e:
             if "can't find a valid move" in str(e):

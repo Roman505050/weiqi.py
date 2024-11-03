@@ -1,6 +1,7 @@
 from weiqi.game import WeiqiGame
 from weiqi.board import Board
 from weiqi.player import Player
+from weiqi.bot import BaseBot, RandomBot
 from weiqi.figure import Stone
 from weiqi.position import Position
 from weiqi.move import Move
@@ -13,4 +14,6 @@ __all__ = [
     "Stone",
     "Position",
     "Move",
+    "BaseBot",
+    "RandomBot",
 ]
