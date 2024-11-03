@@ -1,12 +1,13 @@
 import unittest
 
-from weiqi import Position
+from weiqi.position import Position
 from weiqi.exceptions import GameOverException
 from weiqi.game import WeiqiGame
 from weiqi.board import Board
 from weiqi.player import Player
 from weiqi.bot import RandomBot
 from weiqi.figure import Stone
+from weiqi.move import Move
 
 
 class TestBoard(unittest.TestCase):
@@ -56,12 +57,12 @@ class TestBoard(unittest.TestCase):
 
         game = WeiqiGame(board, player, bot)
         with self.assertRaises(ValueError):
-            game.make_move(bot, 0, 0)
+            bot.make_move(game)
 
-        game.make_move(player, 0, 0)
+        player.make_move(game, Position(0, 0))
 
         with self.assertRaises(ValueError):
-            game.make_move(player, 0, 1)
+            player.make_move(game, Position(0, 1))
 
     def test_resign(self):
         board = Board.generate_empty_board(9)
@@ -87,7 +88,26 @@ class TestBoard(unittest.TestCase):
             game.resign(player)
 
         with self.assertRaises(GameOverException):
-            game.make_move(player, 0, 0)
+            player.make_move(game, Position(0, 0))
+
+    def test_raises_on_invalid_use_of_make_move(self):
+        board = Board.generate_empty_board(9)
+        player_black: Player[str] = Player("Black", Stone.BLACK)
+        player_white: Player[str] = Player("White", Stone.WHITE)
+        game = WeiqiGame(board, player_black, player_white)
+
+        with self.assertRaises(ValueError) as context:
+            game.make_move(player_white, Move(Position(0, 0), Stone.WHITE))
+
+            self.assertEqual(str(context.exception), "It's not your turn.")
+
+        with self.assertRaises(ValueError) as context:
+            game.make_move(player_black, Move(Position(0, 0), Stone.WHITE))
+
+            self.assertEqual(
+                str(context.exception),
+                "You can't place a figure of another color.",
+            )
 
     def test_missing_winning_player(self):
         board = Board.generate_empty_board(9)
@@ -105,8 +125,8 @@ class TestBoard(unittest.TestCase):
             board, player_black=player_black, player_white=player_white
         )
 
-        game.make_move(player_black, 1, 0)
-        game.make_move(player_white, 0, 1)
+        player_black.make_move(game, Position(1, 0))
+        player_white.make_move(game, Position(0, 1))
 
         self.assertEqual(len(game.move_history), 2)
         self.assertEqual(game.move_history[0].position, Position(1, 0))

@@ -1,9 +1,11 @@
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, TYPE_CHECKING
 
-from weiqi.board import Board
 from weiqi.figure import Stone
 from weiqi.position import Position
 from weiqi.move import Move
+
+if TYPE_CHECKING:
+    from weiqi.game import WeiqiGame
 
 TUser = TypeVar("TUser")
 
@@ -21,10 +23,12 @@ class Player(Generic[TUser]):
     def figure(self) -> Stone:
         return self._figure
 
-    def make_move(self, board: Board, position: Position) -> Move:
+    def make_move(self, game: "WeiqiGame[TUser]", position: Position) -> None:
         move = Move(position=position, figure=self.figure)
-        board.place_figure(move)
-        return move
+        game.make_move(self, move)
+
+    def resign(self, game: "WeiqiGame[TUser]") -> None:
+        game.resign(self)
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, Player):
