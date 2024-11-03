@@ -70,5 +70,5 @@ After running the command, you should see a window pop up with a Go board. You c
 - [ ] Implement the end-game detection
 - [x] Implement the simple scoring system
 - [ ] Implement the complex scoring system
-- [ ] Implement the game history
+- [x] Implement the game history
 - [ ] Implement the AI players

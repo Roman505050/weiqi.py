@@ -1,5 +1,6 @@
 import unittest
 
+from weiqi import Position
 from weiqi.exceptions import GameOverException
 from weiqi.game import WeiqiGame
 from weiqi.board import Board
@@ -95,3 +96,18 @@ class TestBoard(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             WeiqiGame(board, player, bot, game_over=True)
+
+    def test_history(self):
+        board = Board.generate_empty_board(9)
+        player_white: Player[str] = Player("White", Stone.WHITE)
+        player_black: Player[str] = Player("Black", Stone.BLACK)
+        game = WeiqiGame(
+            board, player_black=player_black, player_white=player_white
+        )
+
+        game.make_move(player_black, 1, 0)
+        game.make_move(player_white, 0, 1)
+
+        self.assertEqual(len(game.move_history), 2)
+        self.assertEqual(game.move_history[0].position, Position(1, 0))
+        self.assertEqual(game.move_history[1].position, Position(0, 1))

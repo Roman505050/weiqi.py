@@ -16,7 +16,7 @@ class BaseBot(ABC):
         return self._figure
 
     @abstractmethod
-    def make_move(self, board: Board): ...
+    def make_move(self, board: Board) -> Move: ...
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, BaseBot):
@@ -25,13 +25,13 @@ class BaseBot(ABC):
 
 
 class RandomBot(BaseBot):
-    def make_move(self, board: Board):
+    def make_move(self, board: Board) -> Move:
         count = 0
         while True:
             x_rand = random.randint(0, board.size - 1)
             y_rand = random.randint(0, board.size - 1)
             position = Position(x_rand, y_rand)
-            move = Move(position, self.figure)
+            move = Move(position=position, figure=self.figure)
             if board.figures[position] is None:
                 try:
                     board.place_figure(move)
@@ -42,3 +42,4 @@ class RandomBot(BaseBot):
                     else:
                         raise ValueError("RandomBot can't find a valid move")
                 break
+        return move
