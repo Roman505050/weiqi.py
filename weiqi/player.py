@@ -21,9 +21,10 @@ class Player(Generic[TUser]):
     def figure(self) -> Stone:
         return self._figure
 
-    def make_move(self, board: Board, position: Position):
-        move = Move(position, self.figure)
+    def make_move(self, board: Board, position: Position) -> Move:
+        move = Move(position=position, figure=self.figure)
         board.place_figure(move)
+        return move
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, Player):

@@ -3,6 +3,7 @@ from typing import Generic
 from weiqi.exceptions import GameOverException
 from weiqi.board import Board
 from weiqi.figure import Stone
+from weiqi.move import MoveHistory
 from weiqi.player import Player, TUser
 from weiqi.bot import BaseBot
 from weiqi.position import Position
@@ -17,12 +18,14 @@ class WeiqiGame(Generic[TUser]):
         turn: Stone | None = None,
         game_over: bool = False,
         winning_player: Player[TUser] | BaseBot | None = None,
+        move_history: MoveHistory | None = None,
     ):
         self._board = board
         self._players = [player_black, player_white]
         self._turn = turn or Stone.BLACK
         self._game_over = game_over
         self._winning_player: Player[TUser] | BaseBot | None = winning_player
+        self._move_history = move_history or MoveHistory()
 
         self._validate_players()
         self._validate_over_game()
@@ -42,6 +45,10 @@ class WeiqiGame(Generic[TUser]):
     @property
     def winning_player(self) -> Player[TUser] | BaseBot | None:
         return self._winning_player
+
+    @property
+    def move_history(self) -> MoveHistory:
+        return self._move_history
 
     @property
     def turn(self) -> Stone:
@@ -97,13 +104,14 @@ class WeiqiGame(Generic[TUser]):
             if x is None or y is None:
                 raise ValueError("Position is required.")
             position = Position(x, y)
-            player.make_move(self._board, position)
+            move = player.make_move(self._board, position)
         else:
             if x is not None or y is not None:
                 raise ValueError(
                     "Position is not required. Because it's bot move."
                 )
-            player.make_move(self._board)  # Bot move
+            move = player.make_move(self._board)  # Bot move
+        self._move_history.add_move(move)
         self._next_turn()
 
     def _next_turn(self):
