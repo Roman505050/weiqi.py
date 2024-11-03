@@ -1,5 +1,6 @@
 from typing import Generic
 
+from weiqi.exceptions import GameOverException
 from weiqi.board import Board
 from weiqi.figure import Stone
 from weiqi.player import Player, TUser
@@ -14,24 +15,41 @@ class WeiqiGame(Generic[TUser]):
         player_black: Player[TUser] | BaseBot,
         player_white: Player[TUser] | BaseBot,
         turn: Stone | None = None,
+        game_over: bool = False,
+        winning_player: Player[TUser] | BaseBot | None = None,
     ):
         self._board = board
         self._players = [player_black, player_white]
         self._turn = turn or Stone.BLACK
+        self._game_over = game_over
+        self._winning_player: Player[TUser] | BaseBot | None = winning_player
 
         self._validate_players()
+        self._validate_over_game()
 
     @property
     def board(self) -> Board:
         return self._board
 
     @property
+    def game_over(self) -> bool:
+        return self._game_over
+
+    @property
     def players(self) -> list[Player[TUser] | BaseBot]:
         return self._players
 
     @property
+    def winning_player(self) -> Player[TUser] | BaseBot | None:
+        return self._winning_player
+
+    @property
     def turn(self) -> Stone:
         return self._turn
+
+    def _validate_over_game(self):
+        if self._game_over and not self._winning_player:
+            raise ValueError("Winning player is required.")
 
     def _validate_players(self):
         if not all(
@@ -53,12 +71,23 @@ class WeiqiGame(Generic[TUser]):
             player for player in self._players if player.figure == self._turn
         )
 
+    def resign(self, player: Player[TUser]):
+        if self._game_over:
+            raise GameOverException("Game is already over.")
+        if player not in self._players:
+            raise ValueError("Invalid player.")
+        self._game_over = True
+        self._winning_player = next(pl for pl in self._players if pl != player)
+
     def make_move(
         self,
         player: Player[TUser] | BaseBot,
         x: int | None = None,
         y: int | None = None,
     ):
+        if self._game_over:
+            raise GameOverException("Game is already over.")
+
         current_player = self.get_current_player()
 
         if player != current_player:

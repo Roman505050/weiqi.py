@@ -1,4 +1,6 @@
 import unittest
+
+from weiqi.exceptions import GameOverException
 from weiqi.game import WeiqiGame
 from weiqi.board import Board
 from weiqi.player import Player
@@ -59,3 +61,37 @@ class TestBoard(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             game.make_move(player, 0, 1)
+
+    def test_resign(self):
+        board = Board.generate_empty_board(9)
+        player: Player[str] = Player("Human", Stone.BLACK)
+        bot: RandomBot = RandomBot(Stone.WHITE)
+
+        game = WeiqiGame(board, player, bot)
+        self.assertEqual(game.game_over, False)
+        game.resign(player)
+        self.assertEqual(game.game_over, True)
+        self.assertEqual(game.winning_player, bot)
+        self.assertEqual(game.get_current_player(), player)
+
+    def test_raises_on_over_game(self):
+        board = Board.generate_empty_board(9)
+        player: Player[str] = Player("Human", Stone.BLACK)
+        bot: RandomBot = RandomBot(Stone.WHITE)
+        game = WeiqiGame(
+            board, player, bot, game_over=True, winning_player=bot
+        )
+
+        with self.assertRaises(GameOverException):
+            game.resign(player)
+
+        with self.assertRaises(GameOverException):
+            game.make_move(player, 0, 0)
+
+    def test_missing_winning_player(self):
+        board = Board.generate_empty_board(9)
+        player: Player[str] = Player("Human", Stone.BLACK)
+        bot: RandomBot = RandomBot(Stone.WHITE)
+
+        with self.assertRaises(ValueError):
+            WeiqiGame(board, player, bot, game_over=True)
