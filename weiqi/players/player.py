@@ -1,11 +1,11 @@
 from typing import Generic, TypeVar, TYPE_CHECKING
 
-from weiqi.figure import Stone
-from weiqi.position import Position
-from weiqi.move import Move
+from weiqi.core.figure import Stone
+from weiqi.core.position import Position
+from weiqi.core.move import Move
 
 if TYPE_CHECKING:
-    from weiqi.game import WeiqiGame
+    from weiqi.core.game import WeiqiGame
 
 TUser = TypeVar("TUser")
 

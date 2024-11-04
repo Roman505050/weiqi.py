@@ -1,4 +1,4 @@
-from weiqi.enums import Winner
+from weiqi.utils.enums import Winner
 
 
 class GameStatus:

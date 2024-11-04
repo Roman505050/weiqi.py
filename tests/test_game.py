@@ -1,15 +1,15 @@
 import unittest
 
-from weiqi.enums import Winner
-from weiqi.game_status import GameStatus
-from weiqi.position import Position
-from weiqi.exceptions import GameOverException
-from weiqi.game import WeiqiGame
-from weiqi.board import Board
-from weiqi.player import Player
-from weiqi.bot import RandomBot
-from weiqi.figure import Stone
-from weiqi.move import Move
+from weiqi.utils.enums import Winner
+from weiqi.utils.game_status import GameStatus
+from weiqi.core.position import Position
+from weiqi.exceptions.game import GameOverException
+from weiqi.core.game import WeiqiGame
+from weiqi.core.board import Board
+from weiqi.players.player import Player
+from weiqi.players.bot import RandomBot
+from weiqi.core.figure import Stone
+from weiqi.core.move import Move
 
 
 class TestBoard(unittest.TestCase):

@@ -1,7 +1,7 @@
 import unittest
 from parameterized import parameterized  # type: ignore[import-untyped]
 
-from weiqi.bot import RandomBot
+from weiqi.players.bot import RandomBot
 
 
 class MyTestCase(unittest.TestCase):

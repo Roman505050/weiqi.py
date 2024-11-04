@@ -1,10 +1,10 @@
 import unittest
 
-from weiqi.game import WeiqiGame
-from weiqi.player import Player
-from weiqi.position import Position
-from weiqi.figure import Stone
-from weiqi.board import Board
+from weiqi.core.game import WeiqiGame
+from weiqi.players.player import Player
+from weiqi.core.position import Position
+from weiqi.core.figure import Stone
+from weiqi.core.board import Board
 
 
 class TestPlayer(unittest.TestCase):

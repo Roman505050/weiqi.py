@@ -2,8 +2,8 @@ from bisect import insort
 from dataclasses import dataclass, field
 import datetime
 
-from weiqi.position import Position
-from weiqi.figure import Stone
+from weiqi.core.position import Position
+from weiqi.core.figure import Stone
 
 
 @dataclass(frozen=True)
