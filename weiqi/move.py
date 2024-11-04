@@ -8,8 +8,8 @@ from weiqi.figure import Stone
 
 @dataclass(frozen=True)
 class Move:
-    position: Position
-    figure: Stone | None
+    position: Position | None
+    figure: Stone
     timestamp: datetime.datetime = field(init=False)
 
     def __post_init__(self):
