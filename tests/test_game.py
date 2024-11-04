@@ -1,5 +1,6 @@
 import unittest
 
+from weiqi.enums import Winner
 from weiqi.position import Position
 from weiqi.exceptions import GameOverException
 from weiqi.game import WeiqiGame
@@ -73,7 +74,7 @@ class TestBoard(unittest.TestCase):
         self.assertEqual(game.game_over, False)
         game.resign(player)
         self.assertEqual(game.game_over, True)
-        self.assertEqual(game.winning_player, bot)
+        self.assertEqual(game.winner, Winner.WHITE)
         self.assertEqual(game.get_current_player(), player)
 
     def test_raises_on_over_game(self):
@@ -81,7 +82,7 @@ class TestBoard(unittest.TestCase):
         player: Player[str] = Player("Human", Stone.BLACK)
         bot: RandomBot = RandomBot(Stone.WHITE)
         game = WeiqiGame(
-            board, player, bot, game_over=True, winning_player=bot
+            board, player, bot, game_over=True, winner=Winner.WHITE
         )
 
         with self.assertRaises(GameOverException):

@@ -3,6 +3,7 @@ import copy
 
 from weiqi.exceptions import GameOverException
 from weiqi.board import Board
+from weiqi.enums import Winner
 from weiqi.figure import Stone
 from weiqi.move import MoveHistory, Move
 from weiqi.player import Player, TUser
@@ -17,14 +18,14 @@ class WeiqiGame(Generic[TUser]):
         player_white: Player[TUser] | BaseBot,
         turn: Stone | None = None,
         game_over: bool = False,
-        winning_player: Player[TUser] | BaseBot | None = None,
+        winner: Winner | None = None,
         move_history: MoveHistory | None = None,
     ):
         self._board = board
         self._players = [player_black, player_white]
         self._turn = turn or Stone.BLACK
         self._game_over = game_over
-        self._winning_player: Player[TUser] | BaseBot | None = winning_player
+        self._winner: Winner | None = winner
         self._move_history = move_history or MoveHistory()
 
         self._validate_players()
@@ -44,8 +45,8 @@ class WeiqiGame(Generic[TUser]):
         return self._players
 
     @property
-    def winning_player(self) -> Player[TUser] | BaseBot | None:
-        return self._winning_player
+    def winner(self) -> Winner | None:
+        return self._winner
 
     @property
     def move_history(self) -> MoveHistory:
@@ -56,8 +57,8 @@ class WeiqiGame(Generic[TUser]):
         return self._turn
 
     def _validate_over_game(self):
-        if self._game_over and not self._winning_player:
-            raise ValueError("Winning player is required.")
+        if self._game_over and not self._winner:
+            raise ValueError("Winning status must be set if game is over.")
 
     def _validate_players(self):
         if not all(
@@ -85,7 +86,9 @@ class WeiqiGame(Generic[TUser]):
         if player not in self._players:
             raise ValueError("Invalid player.")
         self._game_over = True
-        self._winning_player = next(pl for pl in self._players if pl != player)
+        self._winner = (
+            Winner.BLACK if player.figure == Stone.WHITE else Winner.WHITE
+        )
 
     def make_move(
         self,
@@ -102,7 +105,23 @@ class WeiqiGame(Generic[TUser]):
         if move.figure != player.figure:
             raise ValueError("You can't place a figure of another color.")
 
-        self._board.place_figure(move)
+        if move.position is not None:
+            self._board.place_figure(move)
+        else:
+            last_move = self._move_history.last_move
+            # If the last move was a pass, the game is over.
+            if last_move and last_move.position is None:
+                self._game_over = True
+                score = self._board.score
+                black_score = score[Stone.BLACK]
+                white_score = score[Stone.WHITE]
+                if black_score > white_score:
+                    self._winner = Winner.BLACK
+                elif white_score > black_score:
+                    self._winner = Winner.WHITE
+                else:
+                    self._winner = Winner.DRAW
+
         self._move_history.add_move(move)
         self._next_turn()
 
