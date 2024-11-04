@@ -2,6 +2,10 @@
 .idea
 .vscode
 
+# Build files
+build/
+dist/
+
 # Virtual Environments
 venv
 .venv
