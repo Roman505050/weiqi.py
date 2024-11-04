@@ -9,7 +9,7 @@ from weiqi.figure import Stone
 @dataclass(frozen=True)
 class Move:
     position: Position
-    figure: Stone
+    figure: Stone | None
     timestamp: datetime.datetime = field(init=False)
 
     def __post_init__(self):
