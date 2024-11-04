@@ -8,6 +8,7 @@ from weiqi.figure import Stone
 from weiqi.move import MoveHistory, Move
 from weiqi.player import Player, TUser
 from weiqi.bot import BaseBot
+from weiqi.game_status import GameStatus
 
 
 class WeiqiGame(Generic[TUser]):
@@ -17,19 +18,18 @@ class WeiqiGame(Generic[TUser]):
         player_black: Player[TUser] | BaseBot,
         player_white: Player[TUser] | BaseBot,
         turn: Stone | None = None,
-        game_over: bool = False,
-        winner: Winner | None = None,
+        game_status: GameStatus | None = None,
         move_history: MoveHistory | None = None,
+        komi: float | int = 6.5,  # 6.5 is the Japanese and Korean rules.
     ):
         self._board = board
         self._players = [player_black, player_white]
         self._turn = turn or Stone.BLACK
-        self._game_over = game_over
-        self._winner: Winner | None = winner
+        self._game_status = game_status or GameStatus(False, None)
         self._move_history = move_history or MoveHistory()
+        self._komi = komi
 
         self._validate_players()
-        self._validate_over_game()
 
     @property
     def board(self) -> Board:
@@ -37,16 +37,12 @@ class WeiqiGame(Generic[TUser]):
         return copy.deepcopy(self._board)
 
     @property
-    def game_over(self) -> bool:
-        return self._game_over
+    def game_status(self) -> GameStatus:
+        return self._game_status
 
     @property
     def players(self) -> list[Player[TUser] | BaseBot]:
         return self._players
-
-    @property
-    def winner(self) -> Winner | None:
-        return self._winner
 
     @property
     def move_history(self) -> MoveHistory:
@@ -56,9 +52,9 @@ class WeiqiGame(Generic[TUser]):
     def turn(self) -> Stone:
         return self._turn
 
-    def _validate_over_game(self):
-        if self._game_over and not self._winner:
-            raise ValueError("Winning status must be set if game is over.")
+    @property
+    def komi(self) -> float:
+        return self._komi
 
     def _validate_players(self):
         if not all(
@@ -81,21 +77,19 @@ class WeiqiGame(Generic[TUser]):
         )
 
     def resign(self, player: Player[TUser]):
-        if self._game_over:
+        if self._game_status.is_over:
             raise GameOverException("Game is already over.")
         if player not in self._players:
             raise ValueError("Invalid player.")
-        self._game_over = True
-        self._winner = (
-            Winner.BLACK if player.figure == Stone.WHITE else Winner.WHITE
-        )
+        winner = Winner.WHITE if player.figure == Stone.BLACK else Winner.BLACK
+        self._game_status.end_game(winner, None, None)
 
     def make_move(
         self,
         player: Player[TUser] | BaseBot,
         move: Move,
     ):
-        if self._game_over:
+        if self._game_status.is_over:
             raise GameOverException("Game is already over.")
 
         current_player = self.get_current_player()
@@ -111,16 +105,16 @@ class WeiqiGame(Generic[TUser]):
             last_move = self._move_history.last_move
             # If the last move was a pass, the game is over.
             if last_move and last_move.position is None:
-                self._game_over = True
                 score = self._board.score
                 black_score = score[Stone.BLACK]
-                white_score = score[Stone.WHITE]
+                white_score = score[Stone.WHITE] + self._komi
                 if black_score > white_score:
-                    self._winner = Winner.BLACK
+                    winner = Winner.BLACK
                 elif white_score > black_score:
-                    self._winner = Winner.WHITE
+                    winner = Winner.WHITE
                 else:
-                    self._winner = Winner.DRAW
+                    winner = Winner.DRAW
+                self._game_status.end_game(winner, black_score, white_score)
 
         self._move_history.add_move(move)
         self._next_turn()

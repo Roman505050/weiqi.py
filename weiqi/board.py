@@ -218,8 +218,8 @@ class Board:
             }
 
         return {
-            Stone.BLACK: black_score,
-            Stone.WHITE: white_score,
+            Stone.BLACK: black_score + self.white_captured,
+            Stone.WHITE: white_score + self.black_captured,
         }
 
     @staticmethod

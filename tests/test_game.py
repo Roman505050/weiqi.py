@@ -1,6 +1,7 @@
 import unittest
 
 from weiqi.enums import Winner
+from weiqi.game_status import GameStatus
 from weiqi.position import Position
 from weiqi.exceptions import GameOverException
 from weiqi.game import WeiqiGame
@@ -71,19 +72,20 @@ class TestBoard(unittest.TestCase):
         bot: RandomBot = RandomBot(Stone.WHITE)
 
         game = WeiqiGame(board, player, bot)
-        self.assertEqual(game.game_over, False)
+        self.assertEqual(game.game_status.is_over, False)
         game.resign(player)
-        self.assertEqual(game.game_over, True)
-        self.assertEqual(game.winner, Winner.WHITE)
+        self.assertEqual(game.game_status.is_over, True)
+        self.assertEqual(game.game_status.winner, Winner.WHITE)
+        self.assertEqual(game.game_status.black_score, None)
+        self.assertEqual(game.game_status.white_score, None)
         self.assertEqual(game.get_current_player(), player)
 
     def test_raises_on_over_game(self):
         board = Board.generate_empty_board(9)
         player: Player[str] = Player("Human", Stone.BLACK)
         bot: RandomBot = RandomBot(Stone.WHITE)
-        game = WeiqiGame(
-            board, player, bot, game_over=True, winner=Winner.WHITE
-        )
+        game_status = GameStatus(True, Winner.BLACK, 10, 20)
+        game = WeiqiGame(board, player, bot, game_status=game_status)
 
         with self.assertRaises(GameOverException):
             game.resign(player)
@@ -110,14 +112,6 @@ class TestBoard(unittest.TestCase):
                 "You can't place a figure of another color.",
             )
 
-    def test_missing_winning_player(self):
-        board = Board.generate_empty_board(9)
-        player: Player[str] = Player("Human", Stone.BLACK)
-        bot: RandomBot = RandomBot(Stone.WHITE)
-
-        with self.assertRaises(ValueError):
-            WeiqiGame(board, player, bot, game_over=True)
-
     def test_history(self):
         board = Board.generate_empty_board(9)
         player_white: Player[str] = Player("White", Stone.WHITE)
@@ -132,3 +126,20 @@ class TestBoard(unittest.TestCase):
         self.assertEqual(len(game.move_history), 2)
         self.assertEqual(game.move_history[0].position, Position(1, 0))
         self.assertEqual(game.move_history[1].position, Position(0, 1))
+
+    def test_two_passes_end_game(self):
+        string_state = ".W.../..B../B.W../..BB./.B.B."
+        board = Board(string_state)
+        player_white: Player[str] = Player("White", Stone.WHITE)
+        player_black: Player[str] = Player("Black", Stone.BLACK)
+        game = WeiqiGame(
+            board, player_black=player_black, player_white=player_white
+        )
+
+        player_black.make_move(game, None)
+        player_white.make_move(game, None)
+
+        self.assertEqual(game.game_status.is_over, True)
+        self.assertEqual(game.game_status.winner, Winner.WHITE)
+        self.assertEqual(game.game_status.black_score, 1)
+        self.assertEqual(game.game_status.white_score, 6.5)
