@@ -23,7 +23,9 @@ class Player(Generic[TUser]):
     def figure(self) -> Stone:
         return self._figure
 
-    def make_move(self, game: "WeiqiGame[TUser]", position: Position) -> None:
+    def make_move(
+        self, game: "WeiqiGame[TUser]", position: Position | None
+    ) -> None:
         move = Move(position=position, figure=self.figure)
         game.make_move(self, move)
 

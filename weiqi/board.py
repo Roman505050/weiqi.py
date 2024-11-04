@@ -296,6 +296,8 @@ class Board:
         )
 
     def place_figure(self, move: Move) -> None:
+        if move.position is None:
+            raise ValueError("Position is required.")
         if not self.position_in_bounds(move.position):
             raise ValueError("Position out of bounds.")
         if self._figures.get(move.position) is not None:
