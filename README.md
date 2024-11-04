@@ -63,12 +63,5 @@ After running the command, you should see a window pop up with a Go board. You c
 
 ### TODO
 
-- [x] Implement the pass move system
-- [x] Implement the surrender system
 - [ ] Implement the time control system
-- [x] Implement the count of captured stones
-- [x] Implement the end-game detection
-- [x] Implement the simple scoring system
-- [x] Implement the complex scoring system
-- [x] Implement the game history
 - [ ] Implement the AI players
