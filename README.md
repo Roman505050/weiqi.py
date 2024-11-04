@@ -63,5 +63,6 @@ After running the command, you should see a window pop up with a Go board. You c
 
 ### TODO
 
+- [ ] New example pygame for v0.2.0 (with the new features)
 - [ ] Implement the time control system
 - [ ] Implement the AI players

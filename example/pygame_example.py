@@ -1,4 +1,5 @@
-# Pygame usage example
+# Pygame usage example.
+# The old example (Weiqi==0.1.0).
 import pygame
 import time
 import sys
