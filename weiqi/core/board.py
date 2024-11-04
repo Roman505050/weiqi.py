@@ -1,9 +1,9 @@
 from itertools import product
 
-from weiqi.group import Group
-from weiqi.position import Position
-from weiqi.figure import Stone
-from weiqi.move import Move
+from weiqi.core.group import Group
+from weiqi.core.position import Position
+from weiqi.core.figure import Stone
+from weiqi.core.move import Move
 
 
 class Board:

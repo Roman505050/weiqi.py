@@ -1,5 +1,5 @@
-from weiqi.figure import Stone
-from weiqi.position import Position
+from weiqi.core.figure import Stone
+from weiqi.core.position import Position
 
 
 class Group:

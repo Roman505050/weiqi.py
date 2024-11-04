@@ -1,10 +1,10 @@
 import unittest
 from parameterized import parameterized  # type: ignore[import-untyped]
 
-from weiqi.board import Board
-from weiqi.position import Position
-from weiqi.figure import Stone
-from weiqi.move import Move
+from weiqi.core.board import Board
+from weiqi.core.position import Position
+from weiqi.core.figure import Stone
+from weiqi.core.move import Move
 
 
 class TestBoard(unittest.TestCase):

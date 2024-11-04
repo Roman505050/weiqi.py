@@ -1,7 +1,7 @@
 import unittest
 
-from weiqi.enums import Winner
-from weiqi.game_status import GameStatus
+from weiqi.utils.enums import Winner
+from weiqi.utils.game_status import GameStatus
 
 
 class TestGameStatus(unittest.TestCase):

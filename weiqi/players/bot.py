@@ -2,14 +2,14 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 import random
 
-from weiqi.figure import Stone
-from weiqi.position import Position
-from weiqi.move import Move
-from weiqi.board import Board
+from weiqi.core.figure import Stone
+from weiqi.core.position import Position
+from weiqi.core.move import Move
+from weiqi.core.board import Board
 
 if TYPE_CHECKING:
-    from weiqi.game import WeiqiGame
-    from weiqi.player import TUser
+    from weiqi.core.game import WeiqiGame
+    from weiqi.players.player import TUser
 
 
 class BaseBot(ABC):

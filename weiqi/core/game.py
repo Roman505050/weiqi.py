@@ -1,14 +1,14 @@
 from typing import Generic
 import copy
 
-from weiqi.exceptions import GameOverException
-from weiqi.board import Board
-from weiqi.enums import Winner
-from weiqi.figure import Stone
-from weiqi.move import MoveHistory, Move
-from weiqi.player import Player, TUser
-from weiqi.bot import BaseBot
-from weiqi.game_status import GameStatus
+from weiqi.exceptions.game import GameOverException
+from weiqi.core.board import Board
+from weiqi.utils.enums import Winner
+from weiqi.core.figure import Stone
+from weiqi.core.move import MoveHistory, Move
+from weiqi.players.player import Player, TUser
+from weiqi.players.bot import BaseBot
+from weiqi.utils.game_status import GameStatus
 
 
 class WeiqiGame(Generic[TUser]):
