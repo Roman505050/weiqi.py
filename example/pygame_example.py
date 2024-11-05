@@ -1,5 +1,7 @@
 # Pygame usage example.
 # The old example (Weiqi==0.1.0).
+from queue import Queue
+import threading
 import pygame
 import time
 import sys
@@ -15,6 +17,7 @@ class WeiqiGUI:
 
     def __init__(self, game: WeiqiGame, player: Player, bot: BaseBot):
         pygame.font.init()
+        pygame.display.set_caption("Weiqi")
         self.game = game
         self.player = player
         self.bot = bot
@@ -24,7 +27,8 @@ class WeiqiGUI:
         self.screen = pygame.display.set_mode(
             (self.window_size, self.window_size + 60)
         )
-        pygame.display.set_caption("Weiqi")
+        self.queue: Queue[str] = Queue()
+        self.lock = threading.Lock()
 
     def draw(self):
         self._draw_background()
@@ -139,11 +143,12 @@ class WeiqiGUI:
         """Place a stone on the board"""
         try:
             self.player.make_move(self.game, Position(x, y))
-            self.draw()
+            self.queue.put("update")
 
-            self.bot_move()
+            return self.bot_move()
         except ValueError as e:
             print(f"Invalid move: {e}")
+            self.lock.release()
 
     def bot_move(self) -> None:
         try:
@@ -151,16 +156,23 @@ class WeiqiGUI:
             if isinstance(player, BaseBot):
                 time.sleep(1)
                 player.make_move(self.game)
-                self.draw()
+                self.queue.put("update")
         except ValueError as e:
             if "can't find a valid move" in str(e):
                 print("Bot can't find a valid move. Game over.")
                 sys.exit()
             print(f"Invalid move: {e}")
+        finally:
+            self.lock.release()
 
     def main_loop(self):
         self.draw()
         while True:
+            while not self.queue.empty():
+                msg = self.queue.get()
+                if msg == "update":
+                    self.draw()
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
@@ -169,7 +181,12 @@ class WeiqiGUI:
                     x = (x - self.cell_size // 2) // self.cell_size
                     y = (y - self.cell_size // 2) // self.cell_size
 
-                    self.place_stone(x, y)
+                    if self.lock.acquire(blocking=False):
+                        threading.Thread(
+                            target=self.place_stone, args=(x, y)
+                        ).start()
+
+            time.sleep(0.02)
 
 
 def main():
