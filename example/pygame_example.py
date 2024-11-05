@@ -1,12 +1,12 @@
-# Pygame usage example
+# Pygame usage example.
+# The old example (Weiqi==0.1.0).
 from queue import Queue
 import threading
 import pygame
 import time
 import sys
 
-from weiqi import WeiqiGame, Board, Player, Stone
-from weiqi.bot import BaseBot, RandomBot
+from weiqi import WeiqiGame, Board, Player, Stone, Position, BaseBot, RandomBot
 
 
 class WeiqiGUI:
@@ -15,10 +15,12 @@ class WeiqiGUI:
     BOARD_COLOR = (222, 184, 135)
     LINE_COLOR = BLACK
 
-    def __init__(self, game: WeiqiGame):
+    def __init__(self, game: WeiqiGame, player: Player, bot: BaseBot):
         pygame.font.init()
         pygame.display.set_caption("Weiqi")
         self.game = game
+        self.player = player
+        self.bot = bot
         self.board_size = game.board.size
         self.cell_size = 40
         self.window_size = self.cell_size * (self.board_size + 1)
@@ -31,7 +33,7 @@ class WeiqiGUI:
     def draw(self):
         self._draw_background()
         self._draw_board(self.game.board.state_as_matrix)
-        self._draw_score(self.game.score)
+        self._draw_score(self.game.board.score)
         self._draw_turn(self.game.turn)
         pygame.display.flip()
 
@@ -51,14 +53,14 @@ class WeiqiGUI:
             for y in range(self.board_size):
                 center_x = x * self.cell_size + self.cell_size
                 center_y = y * self.cell_size + self.cell_size
-                if board[x][y] == -1:
+                if board[y][x] == -1:
                     pygame.draw.circle(
                         self.screen,
                         self.WHITE,
                         (center_x, center_y),
                         15,
                     )
-                elif board[x][y] == 1:
+                elif board[y][x] == 1:
                     pygame.draw.circle(
                         self.screen,
                         self.BLACK,
@@ -137,17 +139,26 @@ class WeiqiGUI:
                 5,
             )
 
-    def place_stone(self, x: int, y: int):
+    def place_stone(self, x: int, y: int) -> None:
         """Place a stone on the board"""
         try:
-            self.game.make_move(x, y)
+            self.player.make_move(self.game, Position(x, y))
             self.queue.put("update")
+            self.bot_move()
+        except ValueError as e:
+            print(f"Invalid move: {e}")
 
-            if isinstance(self.game.get_current_player(), BaseBot):
+    def bot_move(self) -> None:
+        try:
+            player = self.game.get_current_player()
+            if isinstance(player, BaseBot):
                 time.sleep(1)
-                self.game.make_move()
+                player.make_move(self.game)
                 self.queue.put("update")
         except ValueError as e:
+            if "can't find a valid move" in str(e):
+                print("Bot can't find a valid move. Game over.")
+                sys.exit()
             print(f"Invalid move: {e}")
         finally:
             self.lock.release()
@@ -195,7 +206,7 @@ def main():
     player = Player("Human", Stone.BLACK)
     bot = RandomBot(Stone.WHITE)
     game_ist = WeiqiGame(board_init, player, bot, turn=Stone.BLACK)
-    gui = WeiqiGUI(game_ist)
+    gui = WeiqiGUI(game=game_ist, player=player, bot=bot)
     gui.main_loop()
 
 

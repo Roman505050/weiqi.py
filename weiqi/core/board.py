@@ -1,9 +1,9 @@
 from itertools import product
 
-from weiqi.group import Group
-from weiqi.position import Position
-from weiqi.figure import Stone
-from weiqi.move import Move
+from weiqi.core.group import Group
+from weiqi.core.position import Position
+from weiqi.core.figure import Stone
+from weiqi.core.move import Move
 
 
 class Board:
@@ -12,6 +12,8 @@ class Board:
     def __init__(
         self,
         figures: dict[Position, Stone | None] | str | list[list[int]],
+        white_captured: int = 0,
+        black_captured: int = 0,
     ):
         if isinstance(figures, str):
             self._figures = self._from_string(figures)
@@ -21,6 +23,8 @@ class Board:
             self._figures = figures
 
         self._size = int(len(self._figures) ** 0.5)
+        self._white_captured = white_captured
+        self._black_captured = black_captured
 
         if not self._validate_available_size():
             raise ValueError("Not available size.")
@@ -41,6 +45,20 @@ class Board:
     @property
     def size(self) -> int:
         return self._size
+
+    @property
+    def white_captured(self) -> int:
+        """
+        Number of white stones captured by black player (stones).
+        """
+        return self._white_captured
+
+    @property
+    def black_captured(self) -> int:
+        """
+        Number of black stones captured by white player (stones).
+        """
+        return self._black_captured
 
     def _is_square_board(self) -> bool:
         unique_x = len(set(position.x for position in self._figures.keys()))
@@ -66,12 +84,12 @@ class Board:
     def position_in_bounds(self, position: Position) -> bool:
         return 0 <= position.x < self._size and 0 <= position.y < self._size
 
-    def _find_groups_without_liberties(self) -> list[Group]:
-        return [
+    def _find_groups_without_liberties(self) -> set[Group]:
+        return {
             self._group_at_position(position)
             for position in self._get_not_empty_positions()
             if not self._group_at_position(position).liberties
-        ]
+        }
 
     def _get_not_empty_positions(self) -> list[Position]:
         return [
@@ -93,6 +111,13 @@ class Board:
         ]
 
     def __remove_group(self, group: Group):
+        count = len(group.positions)
+
+        if group.figure == Stone.BLACK:
+            self._black_captured += count
+        elif group.figure == Stone.WHITE:
+            self._white_captured += count
+
         for position in group.positions:
             self._figures[position] = None
 
@@ -122,6 +147,81 @@ class Board:
         group = Group(positions=set(), liberties=set(), figure=figure)
         return bfs([position], set(), group)
 
+    def find_territories(self) -> dict[Stone | None, set[Position]]:
+        visited: set[Position] = set()
+        white_territory: set[Position] = set()
+        black_territory: set[Position] = set()
+        neutral_territory: set[Position] = set()
+
+        def dfs(
+            position: Position,
+            visited: set[Position],
+            territory: set[Position],
+            colors: set[Stone],
+        ):
+            stack = [position]
+            while stack:
+                current_position = stack.pop()
+                if current_position in visited:
+                    continue
+                visited.add(current_position)
+                territory.add(current_position)
+
+                for neighbor in self._get_neighbors(current_position):
+                    if neighbor in visited:
+                        continue
+
+                    neighbor_stone = self._figures.get(neighbor)
+                    if neighbor_stone is None:
+                        stack.append(neighbor)
+                    else:
+                        colors.add(neighbor_stone)
+
+        for i in range(self.size):
+            for j in range(self.size):
+                position = Position(i, j)
+                if (
+                    self._figures[position] is None
+                    and position not in neutral_territory
+                ):
+                    colors: set[Stone] = set()
+                    territory: set[Position] = set()
+                    dfs(position, visited, territory, colors)
+
+                    if Stone.BLACK in colors and Stone.WHITE not in colors:
+                        black_territory.update(territory)
+                    elif Stone.WHITE in colors and Stone.BLACK not in colors:
+                        white_territory.update(territory)
+                    else:
+                        neutral_territory.update(territory)
+
+        return {
+            Stone.BLACK: black_territory,
+            Stone.WHITE: white_territory,
+            None: neutral_territory,
+        }
+
+    @property
+    def score(self) -> dict[Stone, int]:
+        territories = self.find_territories()
+        black_score = len(territories[Stone.BLACK])
+        white_score = len(territories[Stone.WHITE])
+
+        max_figures = self.size**2
+        expected_score = max_figures - 1
+
+        # If one figure in board, score for white and black is 0,0 respectively
+        if expected_score == black_score or expected_score == white_score:
+            return {
+                Stone.BLACK: 0,
+                Stone.WHITE: 0,
+            }
+
+        return {
+            Stone.BLACK: black_score + self.white_captured,
+            Stone.WHITE: white_score + self.black_captured,
+        }
+
     @staticmethod
     def generate_empty_board(size: int) -> "Board":
         figures: dict[Position, Stone | None] = {
@@ -143,7 +243,7 @@ class Board:
         """
         state = [[0] * self.size for _ in range(self.size)]
         for position, stone in self._figures.items():
-            state[position.x][position.y] = (
+            state[position.y][position.x] = (
                 1
                 if stone == Stone.BLACK
                 else -1 if stone == Stone.WHITE else 0
@@ -166,9 +266,9 @@ class Board:
         return "/".join(
             "".join(
                 symbols.get(self._figures.get(Position(x, y)), ".")
-                for y in range(self.size)
+                for x in range(self.size)
             )
-            for x in range(self.size)
+            for y in range(self.size)
         )
 
     @staticmethod
@@ -179,8 +279,8 @@ class Board:
                 if cell == 1
                 else Stone.WHITE if cell == -1 else None
             )
-            for x, row in enumerate(matrix)
-            for y, cell in enumerate(row)
+            for y, row in enumerate(matrix)
+            for x, cell in enumerate(row)
         }
 
     @staticmethod
@@ -196,10 +296,15 @@ class Board:
         )
 
     def place_figure(self, move: Move) -> None:
+        if move.position is None:
+            raise ValueError("Position is required.")
         if not self.position_in_bounds(move.position):
             raise ValueError("Position out of bounds.")
         if self._figures.get(move.position) is not None:
             raise ValueError("Intersection occupied by existing stone.")
+        white_captured = self.white_captured
+        black_captured = self.black_captured
+        figures = self._figures.copy()
 
         self._figures[move.position] = move.figure
 
@@ -216,9 +321,13 @@ class Board:
 
             new_group = self._group_at_position(move.position)
         except ValueError as e:
-            self._figures[move.position] = None
+            self._figures = figures
+            self._white_captured = white_captured
+            self._black_captured = black_captured
             raise e
 
         if not new_group.liberties:
-            self._figures[move.position] = None
+            self._figures = figures
+            self._white_captured = white_captured
+            self._black_captured = black_captured
             raise ValueError("New group has zero liberties (suicide)")
