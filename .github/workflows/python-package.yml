@@ -4,9 +4,12 @@ name: Python package
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "dev" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "dev" ]
+  release:
+    types: [created, published]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -30,11 +33,15 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
-      - name: Lint with mypy
+      - name: Static type checking with mypy
         run: |
           # Run mypy for type checking
-          poetry run mypy weiqi/
+          poetry run mypy .
+      - name: Lint with flake8
+        run: |
+          # Run flake8 to lint the code
+          poetry run flake8 weiqi tests example --max-line-length=79
       - name: Test with unittest
         run: |
           # Run tests with Python's unittest module
-          python -m unittest discover tests
+          poetry run python -m unittest discover tests

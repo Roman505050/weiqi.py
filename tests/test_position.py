@@ -1,5 +1,5 @@
 import unittest
-from weiqi.position import Position
+from weiqi.core.position import Position
 
 
 class TestPlayer(unittest.TestCase):

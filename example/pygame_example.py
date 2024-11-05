@@ -1,10 +1,12 @@
-# Pygame usage example
-from dataclasses import dataclass
-
-from weiqi import WeiqiGame, Board, Player, Stone
-
+# Pygame usage example.
+# The old example (Weiqi==0.1.0).
+from queue import Queue
+import threading
 import pygame
+import time
 import sys
+
+from weiqi import WeiqiGame, Board, Player, Stone, Position, BaseBot, RandomBot
 
 
 class WeiqiGUI:
@@ -13,38 +15,78 @@ class WeiqiGUI:
     BOARD_COLOR = (222, 184, 135)
     LINE_COLOR = BLACK
 
-    def __init__(self, game: WeiqiGame):
+    def __init__(self, game: WeiqiGame, player: Player, bot: BaseBot):
+        pygame.font.init()
+        pygame.display.set_caption("Weiqi")
         self.game = game
+        self.player = player
+        self.bot = bot
         self.board_size = game.board.size
         self.cell_size = 40
         self.window_size = self.cell_size * (self.board_size + 1)
         self.screen = pygame.display.set_mode(
-            (self.window_size, self.window_size)
+            (self.window_size, self.window_size + 60)
         )
-        pygame.display.set_caption("Weiqi")
+        self.queue: Queue[str] = Queue()
+        self.lock = threading.Lock()
+
+    def draw(self):
+        self._draw_background()
+        self._draw_board(self.game.board.state_as_matrix)
+        self._draw_score(self.game.board.score)
+        self._draw_turn(self.game.turn)
+        pygame.display.flip()
+
+    @property
+    def _front_size(self) -> int:
+        mapping = {
+            5: 25,
+            6: 25,
+            7: 25,
+        }
+        return mapping.get(self.board_size, 30)
 
     def _draw_board(self, board: list[list[int]]):
         """Initialize the board by state in the game"""
-        self._draw_background()
 
         for x in range(self.board_size):
             for y in range(self.board_size):
                 center_x = x * self.cell_size + self.cell_size
                 center_y = y * self.cell_size + self.cell_size
-                if board[x][y] == 0:
+                if board[y][x] == -1:
                     pygame.draw.circle(
                         self.screen,
                         self.WHITE,
                         (center_x, center_y),
                         15,
                     )
-                elif board[x][y] == 1:
+                elif board[y][x] == 1:
                     pygame.draw.circle(
                         self.screen,
                         self.BLACK,
                         (center_x, center_y),
                         15,
                     )
+
+    def _draw_score(self, score: dict[Stone, int]):
+        """Draw the score"""
+        font = pygame.font.Font(None, self._front_size)
+        text = font.render(
+            f"Black: {score[Stone.BLACK]} White: {score[Stone.WHITE]}",
+            True,
+            self.BLACK,
+        )
+        self.screen.blit(text, (10, self.window_size))
+
+    def _draw_turn(self, turn: Stone):
+        """Draw the current turn"""
+        font = pygame.font.Font(None, self._front_size)
+        text = font.render(
+            f"{'Black' if turn == Stone.BLACK else 'White'}'s turn",
+            True,
+            self.BLACK,
+        )
+        self.screen.blit(text, (10, self.window_size + 30))
 
     def _draw_background(self):
         """Draw the board grid"""
@@ -97,18 +139,40 @@ class WeiqiGUI:
                 5,
             )
 
-    def place_stone(self, x: int, y: int):
+    def place_stone(self, x: int, y: int) -> None:
         """Place a stone on the board"""
         try:
-            player = self.game.get_current_player()
-            self.game.make_move(player, x, y)
-            self._draw_board(self.game.board.state)
+            self.player.make_move(self.game, Position(x, y))
+            self.queue.put("update")
+
+            return self.bot_move()
         except ValueError as e:
             print(f"Invalid move: {e}")
+            self.lock.release()
+
+    def bot_move(self) -> None:
+        try:
+            player = self.game.get_current_player()
+            if isinstance(player, BaseBot):
+                time.sleep(1)
+                player.make_move(self.game)
+                self.queue.put("update")
+        except ValueError as e:
+            if "can't find a valid move" in str(e):
+                print("Bot can't find a valid move. Game over.")
+                sys.exit()
+            print(f"Invalid move: {e}")
+        finally:
+            self.lock.release()
 
     def main_loop(self):
-        self._draw_board(self.game.board.state)
+        self.draw()
         while True:
+            while not self.queue.empty():
+                msg = self.queue.get()
+                if msg == "update":
+                    self.draw()
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
@@ -117,14 +181,12 @@ class WeiqiGUI:
                     x = (x - self.cell_size // 2) // self.cell_size
                     y = (y - self.cell_size // 2) // self.cell_size
 
-                    self.place_stone(x, y)
-            pygame.display.flip()
+                    if self.lock.acquire(blocking=False):
+                        threading.Thread(
+                            target=self.place_stone, args=(x, y)
+                        ).start()
 
-
-@dataclass
-class User:
-    id: int
-    name: str
+            time.sleep(0.02)
 
 
 def main():
@@ -134,7 +196,7 @@ def main():
             board_size = int(
                 input(
                     "Enter the board size "
-                    f"({", ".join(map(str, available_sizes))}): "
+                    f"({', '.join(map(str, available_sizes))}): "
                 )
             )
             if board_size not in available_sizes:
@@ -143,12 +205,10 @@ def main():
         except ValueError:
             print("Invalid size")
     board_init = Board.generate_empty_board(board_size)
-    players: list[Player[User]] = [
-        Player(User(1, "Alice"), Stone.BLACK),
-        Player(User(2, "Bob"), Stone.WHITE),
-    ]
-    game_ist = WeiqiGame(board_init, players, Stone.BLACK)
-    gui = WeiqiGUI(game_ist)
+    player = Player("Human", Stone.BLACK)
+    bot = RandomBot(Stone.WHITE)
+    game_ist = WeiqiGame(board_init, player, bot, turn=Stone.BLACK)
+    gui = WeiqiGUI(game=game_ist, player=player, bot=bot)
     gui.main_loop()
 
 
