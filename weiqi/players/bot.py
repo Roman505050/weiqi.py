@@ -31,7 +31,7 @@ class BaseBot(ABC):
 
 class RandomBot(BaseBot):
     @staticmethod
-    def _calc_field_boars(matrix: list[list[int]]) -> float:
+    def _calc_field_board(matrix: list[list[int]]) -> float:
         """Calculates the field board in percentage from the matrix."""
         count_non_zero = sum(1 for row in matrix for x in row if x != 0)
         total_elements = len(matrix) * len(matrix[0]) if matrix else 0
@@ -65,8 +65,8 @@ class RandomBot(BaseBot):
 
     def _should_pass_on_high_occupancy(self, board: Board) -> bool:
         state_as_matrix = board.state_as_matrix
-        fielded_board = self._calc_field_boars(state_as_matrix)
-        return 0.7 <= fielded_board <= 0.8 and random.random() < 0.4
+        fielded_board = self._calc_field_board(state_as_matrix)
+        return 0.8 <= fielded_board <= 1.0 and random.random() < 0.4
 
     def _make_pass_move(self, game: "WeiqiGame[TUser]") -> Move:
         """Makes a pass move."""
