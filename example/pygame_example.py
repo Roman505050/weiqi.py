@@ -144,9 +144,11 @@ class WeiqiGUI:
         try:
             self.player.make_move(self.game, Position(x, y))
             self.queue.put("update")
-            self.bot_move()
+
+            return self.bot_move()
         except ValueError as e:
             print(f"Invalid move: {e}")
+            self.lock.release()
 
     def bot_move(self) -> None:
         try:
