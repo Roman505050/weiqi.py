@@ -16,7 +16,7 @@ class MyTestCase(unittest.TestCase):
         ]
     )
     def test_calc_field_boars(self, matrix: list[list[int]], expected: float):
-        self.assertEqual(RandomBot._calc_field_boars(matrix), expected)
+        self.assertEqual(RandomBot._calc_field_board(matrix), expected)
 
 
 if __name__ == "__main__":
