@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "weiqi"
-version = "0.2.0"
+version = "0.2.1"
 description = "A simple Weiqi (Go) library for Python"
 authors = ["Roman505050 <myhun59@gmail.com>"]
 readme = "README.md"

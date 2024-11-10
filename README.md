@@ -17,26 +17,40 @@ To use the library, you can import it in your Python code like this:
 ```python
 from weiqi import Board, WeiqiGame, Player, Stone
 
+
 # Example user implementation
 class User:
     def __init__(self, name: str):
         self.name = name
 
-player_black = Player(User("Black"), Stone.BLACK)
-player_white = Player(User("White"), Stone.WHITE)
+# If you want to adapt the Player class to your User class
+# you can create an adapter class like this
+class PlayerAdapter(User, Player):
+    def __init__(self, name: str, stone: Stone):
+        User.__init__(self, name)
+        Player.__init__(self, stone)
+
+    # Override the __eq__ method to compare the user
+    def __eq__(self, other):
+        if not isinstance(other, PlayerAdapter):
+            return NotImplemented
+        return self.name == other.name and self.figure == other.figure
+
+
+player_black = PlayerAdapter("Alice", Stone.BLACK)
+player_white = PlayerAdapter("Bob", Stone.WHITE)
 
 # 19x19 board
 board = Board.generate_empty_board(19)
 
 game: WeiqiGame[User] = WeiqiGame(
-    player_black=player_black,
-    player_white=player_white,
-    board=board
+    player_black=player_black, player_white=player_white, board=board
 )
 
-# Then you can implement user interaction with the game 
+# Then you can implement user interaction with the game
 # through various interfaced (Example: CLI, GUI, etc.)
 # You can also implement AI players
+
 ```
 
 ### Testing

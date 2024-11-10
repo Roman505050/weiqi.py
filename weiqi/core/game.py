@@ -1,4 +1,3 @@
-from typing import Generic
 import copy
 
 from weiqi.exceptions.game import GameOverException
@@ -6,17 +5,17 @@ from weiqi.core.board import Board
 from weiqi.utils.enums import Winner
 from weiqi.core.figure import Stone
 from weiqi.core.move import MoveHistory, Move
-from weiqi.players.player import Player, TUser
+from weiqi.players.player import Player
 from weiqi.players.bot import BaseBot
 from weiqi.utils.game_status import GameStatus
 
 
-class WeiqiGame(Generic[TUser]):
+class WeiqiGame:
     def __init__(
         self,
         board: Board,
-        player_black: Player[TUser] | BaseBot,
-        player_white: Player[TUser] | BaseBot,
+        player_black: Player | BaseBot,
+        player_white: Player | BaseBot,
         turn: Stone | None = None,
         game_status: GameStatus | None = None,
         move_history: MoveHistory | None = None,
@@ -41,7 +40,7 @@ class WeiqiGame(Generic[TUser]):
         return self._game_status
 
     @property
-    def players(self) -> list[Player[TUser] | BaseBot]:
+    def players(self) -> list[Player | BaseBot]:
         return self._players
 
     @property
@@ -71,12 +70,12 @@ class WeiqiGame(Generic[TUser]):
         if len(set(player.figure for player in self._players)) != 2:
             raise ValueError("Players must have different colors.")
 
-    def get_current_player(self) -> Player[TUser] | BaseBot:
+    def get_current_player(self) -> Player | BaseBot:
         return next(
             player for player in self._players if player.figure == self._turn
         )
 
-    def resign(self, player: Player[TUser]):
+    def resign(self, player: Player):
         if self._game_status.is_over:
             raise GameOverException("Game is already over.")
         if player not in self._players:
@@ -86,7 +85,7 @@ class WeiqiGame(Generic[TUser]):
 
     def make_move(
         self,
-        player: Player[TUser] | BaseBot,
+        player: Player | BaseBot,
         move: Move,
     ):
         if self._game_status.is_over:

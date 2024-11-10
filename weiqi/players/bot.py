@@ -9,7 +9,6 @@ from weiqi.core.board import Board
 
 if TYPE_CHECKING:
     from weiqi.core.game import WeiqiGame
-    from weiqi.players.player import TUser
 
 
 class BaseBot(ABC):
@@ -21,7 +20,7 @@ class BaseBot(ABC):
         return self._figure
 
     @abstractmethod
-    def make_move(self, game: "WeiqiGame[TUser]") -> Move: ...
+    def make_move(self, game: "WeiqiGame") -> Move: ...
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, BaseBot):
@@ -51,7 +50,7 @@ class RandomBot(BaseBot):
         y_rand = random.randint(0, size - 1)
         return Position(x_rand, y_rand)
 
-    def make_move(self, game: "WeiqiGame[TUser]") -> Move:
+    def make_move(self, game: "WeiqiGame") -> Move:
         board = game.board
         last_move = game.move_history.last_move
 
@@ -68,14 +67,14 @@ class RandomBot(BaseBot):
         fielded_board = self._calc_field_board(state_as_matrix)
         return 0.8 <= fielded_board <= 1.0 and random.random() < 0.4
 
-    def _make_pass_move(self, game: "WeiqiGame[TUser]") -> Move:
+    def _make_pass_move(self, game: "WeiqiGame") -> Move:
         """Makes a pass move."""
         move = Move(position=None, figure=self.figure)
         game.make_move(self, move)
         return move
 
     def _make_random_valid_move(
-        self, game: "WeiqiGame[TUser]", board: Board
+        self, game: "WeiqiGame", board: Board
     ) -> Move:
         """Makes a random valid move."""
         max_attempts = 15
