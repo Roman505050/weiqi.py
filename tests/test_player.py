@@ -11,8 +11,8 @@ class TestPlayer(unittest.TestCase):
     @staticmethod
     def get_game():
         board = Board.generate_empty_board(9)
-        player_black = Player(user="Alice", figure=Stone.BLACK)
-        player_white = Player(user="Bob", figure=Stone.WHITE)
+        player_black = Player(figure=Stone.BLACK)
+        player_white = Player(figure=Stone.WHITE)
         return WeiqiGame(
             board=board, player_black=player_black, player_white=player_white
         )

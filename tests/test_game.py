@@ -15,7 +15,7 @@ from weiqi.core.move import Move
 class TestBoard(unittest.TestCase):
     def test_correctly_initializes_game(self):
         board = Board.generate_empty_board(9)
-        player: Player[str] = Player("Human", Stone.BLACK)
+        player: Player = Player(Stone.BLACK)
         bot: RandomBot = RandomBot(Stone.WHITE)
 
         game = WeiqiGame(board, player, bot)
@@ -30,7 +30,7 @@ class TestBoard(unittest.TestCase):
 
     def test_raises_on_not_different_colors(self):
         board = Board.generate_empty_board(9)
-        player: Player[str] = Player("Human", Stone.WHITE)
+        player: Player = Player(Stone.WHITE)
         bot: RandomBot = RandomBot(Stone.WHITE)
 
         with self.assertRaises(ValueError):
@@ -54,7 +54,7 @@ class TestBoard(unittest.TestCase):
 
     def test_raises_on_not_your_turn(self):
         board = Board.generate_empty_board(9)
-        player: Player[str] = Player("Human", Stone.BLACK)
+        player: Player = Player(Stone.BLACK)
         bot: RandomBot = RandomBot(Stone.WHITE)
 
         game = WeiqiGame(board, player, bot)
@@ -68,7 +68,7 @@ class TestBoard(unittest.TestCase):
 
     def test_resign(self):
         board = Board.generate_empty_board(9)
-        player: Player[str] = Player("Human", Stone.BLACK)
+        player: Player = Player(Stone.BLACK)
         bot: RandomBot = RandomBot(Stone.WHITE)
 
         game = WeiqiGame(board, player, bot)
@@ -82,7 +82,7 @@ class TestBoard(unittest.TestCase):
 
     def test_raises_on_over_game(self):
         board = Board.generate_empty_board(9)
-        player: Player[str] = Player("Human", Stone.BLACK)
+        player: Player = Player(Stone.BLACK)
         bot: RandomBot = RandomBot(Stone.WHITE)
         game_status = GameStatus(True, Winner.BLACK, 10, 20)
         game = WeiqiGame(board, player, bot, game_status=game_status)
@@ -95,8 +95,8 @@ class TestBoard(unittest.TestCase):
 
     def test_raises_on_invalid_use_of_make_move(self):
         board = Board.generate_empty_board(9)
-        player_black: Player[str] = Player("Black", Stone.BLACK)
-        player_white: Player[str] = Player("White", Stone.WHITE)
+        player_black: Player = Player(Stone.BLACK)
+        player_white: Player = Player(Stone.WHITE)
         game = WeiqiGame(board, player_black, player_white)
 
         with self.assertRaises(ValueError) as context:
@@ -114,8 +114,8 @@ class TestBoard(unittest.TestCase):
 
     def test_history(self):
         board = Board.generate_empty_board(9)
-        player_white: Player[str] = Player("White", Stone.WHITE)
-        player_black: Player[str] = Player("Black", Stone.BLACK)
+        player_white: Player = Player(Stone.WHITE)
+        player_black: Player = Player(Stone.BLACK)
         game = WeiqiGame(
             board, player_black=player_black, player_white=player_white
         )
@@ -130,8 +130,8 @@ class TestBoard(unittest.TestCase):
     def test_two_passes_end_game(self):
         string_state = ".W.../..B../B.W../..BB./.B.B."
         board = Board(string_state)
-        player_white: Player[str] = Player("White", Stone.WHITE)
-        player_black: Player[str] = Player("Black", Stone.BLACK)
+        player_white: Player = Player(Stone.WHITE)
+        player_black: Player = Player(Stone.BLACK)
         game = WeiqiGame(
             board, player_black=player_black, player_white=player_white
         )

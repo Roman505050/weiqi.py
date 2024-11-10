@@ -205,7 +205,7 @@ def main():
         except ValueError:
             print("Invalid size")
     board_init = Board.generate_empty_board(board_size)
-    player = Player("Human", Stone.BLACK)
+    player = Player(Stone.BLACK)
     bot = RandomBot(Stone.WHITE)
     game_ist = WeiqiGame(board_init, player, bot, turn=Stone.BLACK)
     gui = WeiqiGUI(game=game_ist, player=player, bot=bot)
