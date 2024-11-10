@@ -1,4 +1,3 @@
-from typing import Generic
 import copy
 
 from weiqi.exceptions.game import GameOverException
@@ -11,7 +10,7 @@ from weiqi.players.bot import BaseBot
 from weiqi.utils.game_status import GameStatus
 
 
-class WeiqiGame():
+class WeiqiGame:
     def __init__(
         self,
         board: Board,
